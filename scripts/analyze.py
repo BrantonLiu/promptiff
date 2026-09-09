@@ -121,7 +121,9 @@ def main():
         summary[key]=dict(chars=d['chars'],sentences=len(d['sentences']),**d['stats'])
     out=dict(meta=dict(model=MODEL,revision=getattr(model[0].auto_model.config,'_commit_hash',None),dimensions=int(matrix.shape[1]),maxTokens=max(lengths),jieba=jieba.__version__,semantic='Normalized sentence embeddings; cosine nearest-neighbor over all original units. Heat range 0.45–0.95. Scores are similarity, not authorship probabilities.',lexical='Jieba accurate mode/HMM. Best source unit: 0.65 IDF-weighted token Dice + 0.35 character-bigram Dice. LCS tokens 1; reordered exact token 0.65–0.85; novel token 0.05 + 0.5 character similarity. Punctuation inherits nearest word.',segmentation='Split at 。！？； and line breaks. Units over 100 characters split at commas, then hard limit at 100. Concatenation is lossless; assert no tokenizer truncation.',review='Python difflib SequenceMatcher with autojunk=False, whole-document character operations. Replacement = deletion + yellow insertion.',generated='2026-09-10',inference='local CPU; cached results shipped with demo'),documents=docs)
     dest=ROOT/'public/data';dest.mkdir(parents=True,exist_ok=True)
-    (dest/'analysis.json').write_text(json.dumps(out,ensure_ascii=False,separators=(',',':')))
+    serialized=json.dumps(out,ensure_ascii=False,separators=(',',':'))
+    (dest/'analysis.json').write_text(serialized)
+    (ROOT/'lib/analysis.json').write_text(serialized)
     names={'original':'原始口述','low':'低度改写','medium':'中度改写','high':'高度改写'}
     for key,d in docs.items():
         (dest/f'{key}.txt').write_text(d['text']+'\n')

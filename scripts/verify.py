@@ -5,6 +5,8 @@ ROOT=Path(__file__).resolve().parent.parent
 DATA=json.loads((ROOT/'public/data/analysis.json').read_text())
 DOCS=DATA['documents']; SOURCE=DOCS['original']
 class FixtureTests(unittest.TestCase):
+ def test_imported_and_downloadable_data_agree(self):
+  self.assertEqual((ROOT/'lib/analysis.json').read_bytes(),(ROOT/'public/data/analysis.json').read_bytes())
  def test_original_is_unchanged(self):
   self.assertEqual(SOURCE['text'],(ROOT/'content/original.txt').read_text().strip())
  def test_all_representations_are_lossless(self):

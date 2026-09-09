@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import raw from '@/public/data/analysis.json';
+import raw from '@/lib/analysis.json';
 import type { Analysis, Doc, Level, Mode, Op, Sentence } from '@/lib/types';
 
 const data = raw as unknown as Analysis;
