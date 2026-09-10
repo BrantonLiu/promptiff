@@ -85,7 +85,9 @@ wrangler deploy --config dist/server/wrangler.json
 
 源码的 Wrangler 配置负责构建环境；最终发布使用 vinext/Cloudflare Vite 插件生成的配置，以保留正确的服务端入口与静态资源 binding。不要手工修改 `dist/server/wrangler.json`，下一次构建会覆盖它。
 
-## 5. 上线验收
+## 5. 发布前按钮走查与上线验收
+
+发布前必须按[基础按钮走查清单](ui-smoke-check.md)，在生产构建的本地 Worker 预览中实际点击主要入口和控件。HTTP 200、构建成功不能替代点击验证；走查通过后才执行发布。上线后再次点击首页入口和模式切换。
 
 - 页面标题是“版本比对器”；四个视图、四种改写强度和全文下载正常。
 - 点击 Google 登录，最终回到同一生产站点；刷新后仍能识别登录用户，退出后不再显示账号。
