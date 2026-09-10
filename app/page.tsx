@@ -1,4 +1,4 @@
-import Link from 'next/link';
+/* oxlint-disable next/no-html-link-for-pages -- Native navigation avoids the reproduced vinext production Link crash. */
 import Image from 'next/image';
 import {
   ArrowRight,
@@ -95,22 +95,22 @@ export default async function Home({
         跳到功能介绍
       </a>
       <header className="landing-header landing-container">
-        <Link className="brand" href="/" aria-label="版本比对器首页">
+        <a className="brand" href="/" aria-label="版本比对器首页">
           <span className="brandmark">
             <ScanText size={21} />
           </span>
           版本比对器<span className="beta">LAB</span>
-        </Link>
+        </a>
         <nav aria-label="首页导航">
-          <Link className="landing-nav-link" href="/canvas">
+          <a className="landing-nav-link" href="/canvas">
             Agent 画布
-          </Link>
+          </a>
           <a className="landing-nav-link" href="#features">
             四种比对方式
           </a>
-          <Link className="landing-button compact" href={startHref}>
+          <a className="landing-button compact" href={startHref}>
             查看比对示例 <ArrowUpRight size={16} />
-          </Link>
+          </a>
         </nav>
       </header>
       <section className="landing-hero landing-container">
@@ -127,9 +127,9 @@ export default async function Home({
             先用内置样本试试，看看哪种方式更适合你。
           </p>
           <div className="landing-actions">
-            <Link className="landing-button" href={startHref}>
+            <a className="landing-button" href={startHref}>
               查看比对示例 <ArrowRight size={18} />
-            </Link>
+            </a>
             <a className="landing-text-link" href="#features">
               查看四种比对方式 <span aria-hidden="true">↓</span>
             </a>
@@ -225,12 +225,12 @@ export default async function Home({
                 <h4>比对方式</h4>
                 <p>{detail}</p>
                 <p className="landing-feature-note">{note}</p>
-                <Link
+                <a
                   className="landing-text-link"
                   href={`/${id}?level=${selected}`}
                 >
                   使用{name} <ArrowRight size={16} />
-                </Link>
+                </a>
               </div>
               <figure className="landing-feature-figure">
                 <div className="landing-preview-bar">
@@ -279,13 +279,13 @@ export default async function Home({
             生成概率，不能判定作者归属或事实真伪，也不能断定原意未变。
           </p>
         </div>
-        <Link className="landing-button" href={startHref}>
+        <a className="landing-button" href={startHref}>
           打开比对示例 <ArrowRight size={18} />
-        </Link>
+        </a>
       </section>
       <footer className="landing-footer landing-container">
         <span>版本比对器 · WORDIFF LAB</span>
-        <Link href="/privacy">隐私说明</Link>
+        <a href="/privacy">隐私说明</a>
       </footer>
     </main>
   );
