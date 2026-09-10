@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import { createServer } from 'node:http';
+import { realpathSync } from 'node:fs';
 import { randomBytes } from 'node:crypto';
 import {
   readFile,
@@ -291,7 +292,7 @@ async function main() {
 }
 if (
   process.argv[1] &&
-  resolve(process.argv[1]) === fileURLToPath(import.meta.url)
+  realpathSync(process.argv[1]) === fileURLToPath(import.meta.url)
 )
   main().catch((error) => {
     process.stderr.write(`Wordiff: ${error.message}\n`);
