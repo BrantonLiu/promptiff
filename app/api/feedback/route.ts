@@ -11,7 +11,7 @@ export async function POST(request: Request) {
   const env = await getServerEnv();
   if (!isSameOriginRequest(request, env.siteUrl)) return failure(403, 'INVALID_ORIGIN', '请从版本比对器页面提交反馈。');
   if (request.headers.get('content-type')?.split(';')[0].trim().toLowerCase() !== 'application/json') {
-    return failure(415, 'INVALID_CONTENT_TYPE', '反馈需要使用 JSON 格式提交。');
+    return failure(415, 'INVALID_CONTENT_TYPE', '请用 JSON 格式提交反馈。');
   }
   let parsed: unknown;
   try { parsed = await readFeedbackJson(request); }
@@ -21,9 +21,9 @@ export async function POST(request: Request) {
       : failure(400, 'INVALID_JSON', '反馈格式有误，请重试。');
   }
   const feedback = validateFeedback(parsed);
-  if (!feedback) return failure(400, 'INVALID_FEEDBACK', '请完成四种视图体验、有效停留超过 10 分钟，并检查反馈内容。');
+  if (!feedback) return failure(400, 'INVALID_FEEDBACK', '请先体验全部四种比对方式，累计前台停留超过 10 分钟，并检查反馈是否填写完整。');
   if (!isValidSupabaseUrl(env.supabaseUrl) || !env.supabaseServiceRoleKey) {
-    return failure(503, 'NOT_CONFIGURED', '反馈服务尚未配置，请稍后重试。');
+    return failure(503, 'NOT_CONFIGURED', '反馈服务尚未配置，暂时无法提交反馈。');
   }
 
   try {
@@ -51,9 +51,9 @@ export async function POST(request: Request) {
     });
     // One row per browser session; safe to retry after a connection failure.
     if (error?.code === '23505') return Response.json({ ok: true, duplicate: true }, { headers });
-    if (error) return failure(502, 'SAVE_FAILED', '反馈暂时保存失败，请稍后重试。');
+    if (error) return failure(502, 'SAVE_FAILED', '反馈保存失败，请稍后重试。');
     return Response.json({ ok: true, duplicate: false }, { status: 201, headers });
   } catch {
-    return failure(502, 'SERVICE_UNAVAILABLE', '反馈服务暂时无法连接，请稍后重试。');
+    return failure(502, 'SERVICE_UNAVAILABLE', '暂时无法连接反馈服务，请稍后重试。');
   }
 }

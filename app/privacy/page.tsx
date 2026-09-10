@@ -33,7 +33,7 @@ export default function PrivacyPage() {
         <section style={sectionStyle}>
           <h2 style={headingStyle}>浏览文章与对比结果</h2>
           <p style={paragraphStyle}>
-            当前演示使用预先整理的文章、改写版本和预计算的分析结果。切换审阅、Diff、分词和语义视图时，不会把文章实时发送给大模型重新分析。
+            当前演示使用预先整理的文章、改写版本和预计算的分析结果。切换审阅、类 Git Diff、切词和按句语义比对时，不会把文章实时发送给大模型重新分析。
           </p>
         </section>
 
@@ -67,7 +67,7 @@ export default function PrivacyPage() {
           </p>
           <p style={paragraphStyle}>
             网站由 Cloudflare 提供托管，认证和反馈后端由 Supabase 提供，Google 负责 Google 账号授权。
-            这些服务在提供网络访问、认证和安全防护时，可能处理 IP 地址、请求信息及技术日志；此说明不意味着这些技术日志不存在。
+            这些服务在提供网络访问、认证和安全防护时，可能处理 IP 地址、请求信息及技术日志。
           </p>
           <p style={paragraphStyle}>
             相关服务的隐私说明：{' '}
