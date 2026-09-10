@@ -1,49 +1,49 @@
-# 版本比对器
+# Wordiff · Agent 比对画布
 
-[在线体验](https://wordiff.zliu2934.workers.dev) · [源码](https://github.com/BrantonLiu/wordiff)
+把一轮或多轮用户 prompt 与选定的 AI 产出并排阅读，检查变化、遗漏和新增内容。支持句子语义、字面距离、逐句修订和原文预览，以及 Markdown、纯文本、JSON、CSV、HTML 源码和代码。
 
-Wordiff 用来核对原文与 AI 改写的差异。当前提供一篇口述原稿和三种 AI 改写样本，可检查增删改、用词保留和句子相似度；暂不支持导入自己的文本。相似度不能判定作者归属，也不是 AI 生成概率。
+本仓库提供独立的本地 CLI、画布和 Skill。自营网站、登录、反馈数据库及生产部署配置在独立仓库维护。
 
-- **审阅模式**：字符级增删改，支持隐藏删除内容。
-- **类 Git Diff 比对模式**：原文与改写并排，句子内继续标记字符差异。
-- **切词比对模式**：jieba 分词、位置和字面匹配，蓝色相近、黄色差距较大。
-- **按句语义比对模式**：句向量与原文的余弦相似度，点击查看原句及候选。
+## 快速体验
 
-热力图保留相邻色块的羽化过渡，使用轻微圆角。内置原文与低、中、高改写可下载；四种示例使用固定数据；`/canvas` 可导入自己的会话，真实语义计算通过本地 CLI 接入。Google 登录和使用反馈由 Supabase 提供服务，网站通过 Wrangler 部署到 Cloudflare Workers。
+需要 Node.js 22.13+，基础功能无需安装 npm 依赖：
 
-## 本地快速启动
+```sh
+git clone https://github.com/BrantonLiu/wordiff.git
+cd wordiff
+node cli/wordiff.mjs serve --session examples/session.json
+```
 
-需要 Node.js 22.13 或更高版本、npm。
+打开终端输出的完整本地链接。服务只监听 127.0.0.1；保持进程运行，按 Ctrl-C 关闭。在设置里可以导入会话 JSON，或粘贴自己的 prompt 和产出。
+
+## 在 Agent 中使用
+
+```sh
+node cli/wordiff.mjs install --target ~/.agents/skills
+node cli/wordiff.mjs capture --current --out /absolute/private/path/session.json
+node cli/wordiff.mjs serve --session /absolute/private/path/session.json
+```
+
+安装器不覆盖已有 Skill。capture 仅在当前 Codex 任务环境中采集该任务；也支持手工准备 JSON。[Agent 接入说明](docs/agent-canvas.md)提供可复制给 Agent 的指令、数据格式和模型配置。当前交付 Skill 与 CLI，尚未上架公共插件市场。
+
+## 计算方式
+
+- lexical：默认字面匹配，不下载模型，不发送文本。
+- local：安装 cli/requirements.txt 后在本地 Python 环境运行真实句向量计算，首次使用需下载固定版本模型。
+- remote：连接自有 embeddings API，需要显式选择、环境变量配置和 --allow-remote。
+
+演示附带预先计算的句向量。自己的文本未接入模型时显示字面预览，不套用演示分数。相似度不能证明要求已经满足，需检查否定、数字和主体变化。
+
+## 开发
 
 ```sh
 npm ci
-npm run dev
+npm test
+npm run lint
 ```
 
-打开终端显示的本地地址，首页介绍四种算法并展示正文比对截图，点击「查看比对示例」进入审阅页面。四个比对入口是 `/review`、`/diff`、`/lexical`、`/semantic`，`?level=original|low|medium|high` 指定改写强度。仅浏览比较页面无需登录；启用登录和反馈保存需完成下面的后端配置。
+画布是原生 HTML/CSS/JavaScript，不需要网站框架、构建或云端账号。见[开发指南](docs/development.md)与[计算方法](docs/methodology.md)。
 
-## 部署与开发
+代码采用 [MIT 许可证](LICENSE)。演示文本由项目需求整理，方案为故意包含偏离的演示改写，不代表交付记录。不要把个人会话、凭据或未经授权的材料放进公开测试数据。
 
-- [部署指南](docs/deployment.md)：Cloudflare Wrangler、Supabase 数据库、Google 单点登录和环境变量。
-- [开发指南](docs/development.md)：项目结构、替换文章、重算结果、前台计时和验证。
-- [计算方法与限制](docs/methodology.md)：四种比较算法、配色和模型版本。
-- [参与开发](CONTRIBUTING.md)：分支、验证和提交约定。
-
-完成配置后，发布命令为：
-
-```sh
-npm run build
-npm run deploy
-```
-
-`deploy` 使用构建产生的 `dist/server/wrangler.json`。不要把源码目录当静态站点上传，也不要将 Supabase 服务端密钥写入前端代码。
-
-## 内容与再使用
-
-`content/original.txt` 保留作者口述正文；`low.txt`、`medium.txt`、`high.txt` 是基于它生成的 AI 改写样本。展示标题不参与正文比较。原文含未经外部核实的个人陈述，账号首篇文章发布日期仍待核实；编辑补充与判断在页面内单独说明。
-
-本文、示例图片与个人叙述是实验素材，提供源码不代表这些内容自动获得独立转载授权。公开自己的实例前，请替换为本人拥有或已获许可的语料与图片，并检查署名。项目代码采用 [MIT 许可证](LICENSE)。该许可不包含文章正文、个人叙述、示例图片及其他第三方素材；这些内容需要权利人另行许可。
-
-## Agent 比对画布（开发分支）
-
-新增 `/canvas`：选择对话中的一轮或多轮 prompt，与指定 AI 产出做句子比对、逐句修订和原意覆盖检查。支持独立本地 CLI、可安装 Skill、本地句向量和自有远程 embeddings API。安装与数据格式见 [Agent 接入说明](docs/agent-canvas.md)。公共插件市场、付费算力和远程报告托管尚未上线。
+旧提交和历史分支仍可能包含拆分前的网站源码，本次没有改写 Git 历史。

@@ -1,6 +1,6 @@
 # Agent 比对画布
 
-网站入口 `/canvas`，原有四种示例视图保留。本地 CLI 与网站使用同一套画布文件。
+本仓库提供独立本地画布、CLI 与 Skill。网站在独立仓库中引用这里的固定版本资源。
 
 ## 复制给 Agent 的指令
 
@@ -92,13 +92,13 @@ node cli/wordiff.mjs serve --session /absolute/path/session.json --engine remote
 
 ```sh
 npm test
-npm run typecheck
-npm run build
+npm run lint
+npm pack --dry-run
 ```
 
 新增测试覆盖 Unicode 分句、双向覆盖、字符 diff 重建、非法数据、当前会话定位、重复日志、远程模式授权、向量校验、本地 API 防护及独立安装包。
 
-开发验证记录：26 项测试、TypeScript、lint 与完整 Vinext 构建通过。通过本地 HTTP embeddings 接口实际计算了 384 维向量，并在 `HF_HUB_OFFLINE=1` 下验证缓存推理。远程协议使用模拟服务验证请求范围和响应排序，尚未接入真实付费服务。保留最新主分支的 Wrangler compatibility_date（2026-05-22），与锁定的本地 runtime 兼容。尚未进行浏览器交互/截图测试。
+公开工具测试覆盖算法、Markdown、演示向量一致性、本地 API 防护和独立安装。网站构建与发布记录在网站仓库维护；真实付费服务和市场安装未验证。
 
 ## 阅读布局与示例复现
 

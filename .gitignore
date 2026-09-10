@@ -45,3 +45,7 @@ __pycache__/
 .dev.vars*
 !.dev.vars.example
 !.env.example
+
+# Local conversation exports and install packages
+/session*.json
+*.tgz
