@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Wordiff · Agent 比对画布</title>
+    <link rel="stylesheet" href="./canvas.css" />
+  </head>
+  <body>
+    <header class="top">
+      <a class="brand" href="/" target="_top"
+        ><span>W</span> wordiff <small> / 画布</small></a
+      ><span id="privacy" class="privacy">浏览器内处理 · 不上传文本</span
+      ><button id="install">接入你的 Agent ↗</button>
+    </header>
+    <main>
+      <aside class="sources">
+        <div class="section-label">01 / 比对样本</div>
+        <h1>从你的原意出发。</h1>
+        <label for="sessions">对话</label
+        ><select id="sessions"></select>
+        <div class="source-actions">
+          <button id="import">导入会话</button
+          ><button id="paste">粘贴文本</button>
+        </div>
+        <input id="file" type="file" accept=".json" hidden />
+        <div class="section-row">
+          <h2>Prompt 轮次</h2>
+          <button id="all">选择全部</button>
+        </div>
+        <p class="subtle">选择单轮或多轮，重新计算对应关系。</p>
+        <div id="turns"></div>
+        <div class="source-foot">
+          <strong>看见改写，也看见遗漏</strong>
+          <p>
+            句子相似不等于符合要求。数字、否定与立场变化，需要结合原文检查。
+          </p>
+          <a href="/semantic" target="_top">查看原有语义示例 ↗</a>
+        </div>
+      </aside>
+      <section class="workspace-canvas">
+        <div class="canvas-head">
+          <div>
+            <div class="section-label">02 / 产出物</div>
+            <label for="artifacts" class="sr-only">选择产出物</label
+            ><select id="artifacts"></select>
+          </div>
+          <div class="canvas-actions">
+            <button id="upload-artifact">添加产出物</button
+            ><input
+              id="artifact-file"
+              type="file"
+              accept=".txt,.md,.json,.csv,.html,.js,.ts,.py,.css"
+              hidden
+            /><button id="export">导出会话</button>
+          </div>
+        </div>
+        <div class="toolbar">
+          <div class="modes" role="group" aria-label="比对模式">
+            <button data-mode="semantic" aria-pressed="true">句子语义</button
+            ><button data-mode="lexical" aria-pressed="false">字面距离</button
+            ><button data-mode="diff" aria-pressed="false">逐句修订</button
+            ><button data-mode="preview" aria-pressed="false">产出预览</button>
+          </div>
+          <label class="filter"
+            ><input id="only-gaps" type="checkbox" /> 只看低匹配</label
+          >
+        </div>
+        <div id="engine-notice" class="engine-notice"></div>
+        <div class="summary" id="summary"></div>
+        <div id="viewport" class="viewport">
+          <div id="board" class="board">
+            <article class="paper">
+              <div class="paper-head">
+                <span id="paper-title"></span><small id="format"></small>
+              </div>
+              <div id="output" class="output"></div>
+            </article>
+          </div>
+        </div>
+        <footer class="canvas-footer">
+          <span><i></i> 低匹配 <b class="gradient"></b> 高匹配</span
+          ><span id="counts"></span>
+          <div class="zoom">
+            <button id="zoom-out" aria-label="缩小画布">−</button
+            ><span id="zoom">100%</span
+            ><button id="zoom-in" aria-label="放大画布">+</button
+            ><button id="reset">复位</button>
+          </div>
+        </footer>
+      </section>
+      <aside class="details">
+        <div class="section-label">03 / 句子溯源</div>
+        <h2>这句话，离原意多远？</h2>
+        <div id="inspection"></div>
+        <div class="section-row">
+          <h2>未充分对应的要求</h2>
+          <span id="gap-count"></span>
+        </div>
+        <label class="threshold"
+          >参考阈值
+          <input
+            id="threshold"
+            type="range"
+            min="0"
+            max="1"
+            step="0.05"
+            value="0.65"
+          /><output id="threshold-value">0.65</output></label
+        >
+        <div id="gaps"></div>
+      </aside>
+    </main>
+    <div id="status" role="status" aria-live="polite"></div>
+    <dialog id="install-dialog">
+      <div class="dialog-head">
+        <h2>把 Wordiff 带进你的 Agent</h2>
+        <button data-close="install-dialog" aria-label="关闭">×</button>
+      </div>
+      <p>
+        复制下面的指令给 Codex 或其他 Coding Agent。默认使用本地画布；Agent
+        读取当前可见对话并整理样本。
+      </p>
+      <label for="install-type">安装方式</label
+      ><select id="install-type">
+        <option value="skill">Skill + CLI（推荐）</option>
+        <option value="cli">仅 CLI</option></select
+      ><label for="compute">计算方式</label
+      ><select id="compute">
+        <option value="lexical">字面比对 · 无需模型</option>
+        <option value="local">本地语义 · 首次下载模型</option>
+        <option value="remote">远程语义 · 自有 API</option></select
+      ><textarea id="install-prompt" readonly rows="10"></textarea
+      ><button id="copy" class="primary">复制安装指令</button>
+      <p class="subtle">
+        Skill 安装后可能需要重新开启任务才能被自动发现。当前任务可直接读取
+        SKILL.md。插件市场分发、付费平台和托管分享链接尚未上线。
+      </p>
+    </dialog>
+    <dialog id="paste-dialog">
+      <div class="dialog-head">
+        <h2>新建一组比对</h2>
+        <button data-close="paste-dialog" aria-label="关闭">×</button>
+      </div>
+      <form id="paste-form">
+        <label for="prompt-text">你的 prompt</label
+        ><textarea
+          id="prompt-text"
+          rows="5"
+          required
+          maxlength="30000"
+        ></textarea
+        ><label for="result-text">AI 的产出</label
+        ><textarea
+          id="result-text"
+          rows="7"
+          required
+          maxlength="30000"
+        ></textarea
+        ><button class="primary" type="submit">放入画布</button>
+      </form>
+    </dialog>
+    <script type="module" src="./canvas.mjs"></script>
+  </body>
+</html>

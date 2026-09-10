@@ -13,7 +13,8 @@
     "format": "oxfmt",
     "deploy": "wrangler deploy --config dist/server/wrangler.json",
     "test": "node --experimental-strip-types --test tests/*.test.mjs supabase/tests/*.test.mjs",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "canvas": "node cli/wordiff.mjs"
   },
   "dependencies": {
     "@base-ui/react": "1.7.0",
