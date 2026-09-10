@@ -10,64 +10,62 @@
     <header class="top">
       <a class="brand" href="/" target="_top"
         ><span>W</span> wordiff <small> / 画布</small></a
-      ><span id="privacy" class="privacy">浏览器内处理 · 不上传文本</span
-      ><button id="install">接入你的 Agent ↗</button>
+      >
+      <div class="top-actions">
+        <span id="privacy" class="privacy">本地浏览</span
+        ><button id="settings" aria-haspopup="dialog">设置</button>
+      </div>
     </header>
-    <main>
-      <aside class="sources">
-        <div class="section-label">01 / 比对样本</div>
-        <h1>从你的原意出发。</h1>
-        <label for="sessions">对话</label
-        ><select id="sessions"></select>
-        <div class="source-actions">
-          <button id="import">导入会话</button
-          ><button id="paste">粘贴文本</button>
+    <main id="main">
+      <aside class="sources" aria-label="比对样本">
+        <div class="source-top">
+          <label for="sessions">会话</label
+          ><select id="sessions"></select>
         </div>
-        <input id="file" type="file" accept=".json" hidden />
         <div class="section-row">
-          <h2>Prompt 轮次</h2>
-          <button id="all">选择全部</button>
+          <h1>Prompt 轮次 <span id="selected-count"></span></h1>
+          <button id="all">全选</button>
         </div>
-        <p class="subtle">选择单轮或多轮，重新计算对应关系。</p>
         <div id="turns"></div>
-        <div class="source-foot">
-          <strong>看见改写，也看见遗漏</strong>
-          <p>
-            句子相似不等于符合要求。数字、否定与立场变化，需要结合原文检查。
-          </p>
-          <a href="/semantic" target="_top">查看原有语义示例 ↗</a>
-        </div>
+        <button id="manage" class="source-manage">管理会话与文件</button>
+        <details id="demo-note" class="sample-note">
+          <summary>关于这个示例</summary>
+          <p id="demo-provenance"></p>
+        </details>
       </aside>
-      <section class="workspace-canvas">
+      <section class="workspace-canvas" aria-label="产出画布">
         <div class="canvas-head">
-          <div>
-            <div class="section-label">02 / 产出物</div>
-            <label for="artifacts" class="sr-only">选择产出物</label
+          <div class="artifact-picker">
+            <label for="artifacts">产出物</label
             ><select id="artifacts"></select>
           </div>
-          <div class="canvas-actions">
-            <button id="upload-artifact">添加产出物</button
-            ><input
-              id="artifact-file"
-              type="file"
-              accept=".txt,.md,.json,.csv,.html,.js,.ts,.py,.css"
-              hidden
-            /><button id="export">导出会话</button>
-          </div>
+          <button
+            id="toggle-details"
+            aria-expanded="false"
+            aria-controls="details"
+          >
+            句子出处
+          </button>
         </div>
         <div class="toolbar">
           <div class="modes" role="group" aria-label="比对模式">
             <button data-mode="semantic" aria-pressed="true">句子语义</button
             ><button data-mode="lexical" aria-pressed="false">字面距离</button
             ><button data-mode="diff" aria-pressed="false">逐句修订</button
-            ><button data-mode="preview" aria-pressed="false">产出预览</button>
+            ><button data-mode="preview" aria-pressed="false">原文预览</button>
           </div>
+          <button
+            id="engine-status"
+            class="engine-status"
+            title="查看计算方式"
+          ></button>
+        </div>
+        <div class="reading-meta">
+          <div class="summary" id="summary"></div>
           <label class="filter"
             ><input id="only-gaps" type="checkbox" /> 只看低匹配</label
           >
         </div>
-        <div id="engine-notice" class="engine-notice"></div>
-        <div class="summary" id="summary"></div>
         <div id="viewport" class="viewport">
           <div id="board" class="board">
             <article class="paper">
@@ -79,7 +77,7 @@
           </div>
         </div>
         <footer class="canvas-footer">
-          <span><i></i> 低匹配 <b class="gradient"></b> 高匹配</span
+          <span id="legend">低匹配 <b class="gradient"></b> 高匹配</span
           ><span id="counts"></span>
           <div class="zoom">
             <button id="zoom-out" aria-label="缩小画布">−</button
@@ -89,58 +87,158 @@
           </div>
         </footer>
       </section>
-      <aside class="details">
-        <div class="section-label">03 / 句子溯源</div>
-        <h2>这句话，离原意多远？</h2>
-        <div id="inspection"></div>
-        <div class="section-row">
-          <h2>未充分对应的要求</h2>
-          <span id="gap-count"></span>
+      <aside id="details" class="details" aria-label="句子出处" hidden>
+        <div class="detail-head">
+          <h2>句子出处</h2>
+          <button id="close-details" aria-label="关闭句子出处">×</button>
         </div>
-        <label class="threshold"
-          >参考阈值
-          <input
-            id="threshold"
-            type="range"
-            min="0"
-            max="1"
-            step="0.05"
-            value="0.65"
-          /><output id="threshold-value">0.65</output></label
-        >
-        <div id="gaps"></div>
+        <div id="inspection"></div>
+        <details class="gaps-section">
+          <summary>低匹配要求 <span id="gap-count"></span></summary>
+          <div id="gaps"></div>
+        </details>
       </aside>
     </main>
     <div id="status" role="status" aria-live="polite"></div>
-    <dialog id="install-dialog">
+    <dialog id="settings-dialog" aria-labelledby="settings-title">
       <div class="dialog-head">
-        <h2>把 Wordiff 带进你的 Agent</h2>
-        <button data-close="install-dialog" aria-label="关闭">×</button>
+        <h2 id="settings-title">画布设置</h2>
+        <button data-close="settings-dialog" aria-label="关闭设置">×</button>
       </div>
-      <p>
-        复制下面的指令给 Codex 或其他 Coding Agent。默认使用本地画布；Agent
-        读取当前可见对话并整理样本。
-      </p>
-      <label for="install-type">安装方式</label
-      ><select id="install-type">
-        <option value="skill">Skill + CLI（推荐）</option>
-        <option value="cli">仅 CLI</option></select
-      ><label for="compute">计算方式</label
-      ><select id="compute">
-        <option value="lexical">字面比对 · 无需模型</option>
-        <option value="local">本地语义 · 首次下载模型</option>
-        <option value="remote">远程语义 · 自有 API</option></select
-      ><textarea id="install-prompt" readonly rows="10"></textarea
-      ><button id="copy" class="primary">复制安装指令</button>
-      <p class="subtle">
-        Skill 安装后可能需要重新开启任务才能被自动发现。当前任务可直接读取
-        SKILL.md。插件市场分发、付费平台和托管分享链接尚未上线。
-      </p>
+      <div class="settings-tabs" role="tablist" aria-label="设置分类">
+        <button
+          id="tab-compare"
+          data-settings="compare"
+          role="tab"
+          aria-selected="true"
+          aria-controls="settings-compare"
+        >
+          比对</button
+        ><button
+          id="tab-data"
+          data-settings="data"
+          role="tab"
+          aria-selected="false"
+          aria-controls="settings-data"
+          tabindex="-1"
+        >
+          会话与文件</button
+        ><button
+          id="tab-agent"
+          data-settings="agent"
+          role="tab"
+          aria-selected="false"
+          aria-controls="settings-agent"
+          tabindex="-1"
+        >
+          Agent 接入
+        </button>
+      </div>
+      <section
+        id="settings-compare"
+        role="tabpanel"
+        aria-labelledby="tab-compare"
+      >
+        <div class="setting-row">
+          <div>
+            <h3>低匹配阈值</h3>
+            <p>低于此值的句子会标为低匹配。</p>
+          </div>
+          <label class="threshold"
+            ><span class="sr-only">低匹配阈值</span
+            ><input
+              id="threshold"
+              type="range"
+              min="0"
+              max="1"
+              step="0.05"
+              value="0.65"
+            /><output id="threshold-value">0.65</output></label
+          >
+        </div>
+        <div class="setting-block">
+          <h3>计算方式</h3>
+          <p id="engine-notice"></p>
+          <button id="configure-engine">配置本地模型或远程 API</button>
+        </div>
+        <details class="method-note">
+          <summary>分数如何理解</summary>
+          <p>
+            分数衡量句子表达的接近程度，不是需求完成率。否定、数字和条件变化需要结合原文判断。低匹配要求表示当前产出没有与其足够接近的句子。
+          </p>
+          <p>
+            文档标题与表头保留排版，不计入句子得分。字面距离和逐句修订按字面最近句配对。
+          </p>
+        </details>
+      </section>
+      <section
+        id="settings-data"
+        role="tabpanel"
+        aria-labelledby="tab-data"
+        hidden
+      >
+        <div class="setting-block">
+          <h3>会话</h3>
+          <p id="session-info"></p>
+          <div class="setting-actions">
+            <button id="import">导入会话 JSON</button
+            ><button id="paste">粘贴文本</button
+            ><button id="export">导出当前会话</button>
+          </div>
+        </div>
+        <div class="setting-block">
+          <h3>产出物</h3>
+          <p>将文件加入当前产出对应的轮次。</p>
+          <button id="upload-artifact">添加产出物</button>
+        </div>
+        <p class="subtle">导入内容只保留在当前页面，刷新前可先导出。</p>
+        <input id="file" type="file" accept=".json" hidden /><input
+          id="artifact-file"
+          type="file"
+          accept=".txt,.md,.json,.csv,.html,.js,.ts,.py,.css"
+          hidden
+        />
+      </section>
+      <section
+        id="settings-agent"
+        role="tabpanel"
+        aria-labelledby="tab-agent"
+        hidden
+      >
+        <p>复制指令给你的 Agent，安装并打开当前会话的比对画布。</p>
+        <div class="setting-grid">
+          <div>
+            <label for="install-type">安装方式</label
+            ><select id="install-type">
+              <option value="skill">Skill + CLI</option>
+              <option value="cli">仅 CLI</option>
+            </select>
+          </div>
+          <div>
+            <label for="compute">计算方式</label
+            ><select id="compute">
+              <option value="lexical">字面比对 · 无需模型</option>
+              <option value="local">本地语义</option>
+              <option value="remote">远程语义 · 自有 API</option>
+            </select>
+          </div>
+        </div>
+        <label for="install-prompt">给 Agent 的指令</label
+        ><textarea id="install-prompt" readonly rows="7"></textarea
+        ><button id="copy" class="primary">复制安装指令</button>
+        <details class="method-note">
+          <summary>安装与服务说明</summary>
+          <p>
+            Skill 安装后可能需要重新开启任务才能自动发现；当前任务可直接读取
+            SKILL.md。插件市场分发、付费平台与托管分享链接尚未上线。
+          </p>
+        </details>
+      </section>
     </dialog>
-    <dialog id="paste-dialog">
+    <dialog id="paste-dialog" aria-labelledby="paste-title">
       <div class="dialog-head">
-        <h2>新建一组比对</h2>
-        <button data-close="paste-dialog" aria-label="关闭">×</button>
+        <h2 id="paste-title">新建比对</h2>
+        <button data-close="paste-dialog" aria-label="关闭文本输入">×</button>
       </div>
       <form id="paste-form">
         <label for="prompt-text">你的 prompt</label
@@ -150,7 +248,7 @@
           required
           maxlength="30000"
         ></textarea
-        ><label for="result-text">AI 的产出</label
+        ><label for="result-text">AI 的产出（支持 Markdown）</label
         ><textarea
           id="result-text"
           rows="7"

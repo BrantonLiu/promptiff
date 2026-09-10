@@ -75,6 +75,10 @@ export function startServer({
     ['/canvas/canvas.mjs', 'canvas.mjs'],
     ['/canvas/core.mjs', 'core.mjs'],
     ['/canvas/canvas.css', 'canvas.css'],
+    ...['document.mjs', 'demo.mjs', 'demo-vectors.mjs'].flatMap((name) => [
+      [`/${name}`, name],
+      [`/canvas/${name}`, name],
+    ]),
   ]);
   let busy = false;
   const server = createServer(async (req, res) => {

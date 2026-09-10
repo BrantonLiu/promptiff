@@ -1,42 +1,8 @@
 import { sentences, validateSession, compare, diff } from './core.mjs';
 const $ = (selector) => document.querySelector(selector);
-const demo = validateSession({
-  version: 1,
-  title: '示例 · 为团队设计一个任务助手',
-  turns: [
-    {
-      id: 't1',
-      label: '01 · 最初的想法',
-      text: '做一个团队任务助手，让员工用一句话创建待办。所有任务默认只保存在本地，不上传到服务器。',
-    },
-    {
-      id: 't2',
-      label: '02 · 补充边界',
-      text: '支持按负责人筛选任务。不要加入排行榜，也不要发送提醒邮件。',
-    },
-    {
-      id: 't3',
-      label: '03 · 调整交付',
-      text: '先给我一个网页原型，界面要简洁。保留导出 CSV 的能力。',
-    },
-  ],
-  artifacts: [
-    {
-      id: 'a1',
-      title: '第一版 · 产品方案.md',
-      turnId: 't2',
-      format: 'markdown',
-      text: '# 团队任务助手\n\n员工输入一句话即可创建待办。\n所有任务默认保存到云端，方便团队同步。\n支持按照任务负责人筛选。\n系统每天发送邮件，提醒成员完成任务。',
-    },
-    {
-      id: 'a2',
-      title: '最终版 · 实施方案.md',
-      turnId: 't3',
-      format: 'markdown',
-      text: '# 让任务回到工作本身\n\n员工用一句自然语言描述，即可创建待办。\n任务仅保存在当前设备，不会上传服务器。\n按负责人筛选，快速找到相关任务。\n先交付一个简洁的网页原型。\n支持将任务导出为 CSV 文件。\n团队每周可查看效率排行榜。',
-    },
-  ],
-});
+import { demo, demoProvenance } from './demo.mjs';
+import { prepareDocument, renderDocument } from './document.mjs';
+import { demoVectors, demoModel } from './demo-vectors.mjs';
 let sessions = [demo],
   sessionIndex = 0,
   artifactIndex = 1,
@@ -44,12 +10,13 @@ let sessions = [demo],
   mode = 'semantic',
   threshold = 0.65,
   onlyGaps = false,
-  active = 0,
+  active = -1,
   zoom = 1;
 let capabilities = null,
   result = null,
   source = [],
   target = [],
+  prepared = null,
   vectors = null,
   calculation = 0;
 const cache = new Map();
@@ -79,7 +46,7 @@ function eligible() {
 }
 function resetSelection() {
   selected = new Set(eligible().map((t) => t.id));
-  active = 0;
+  active = -1;
   vectors = null;
 }
 function renderSelectors() {
@@ -103,7 +70,7 @@ function renderSelectors() {
       input.addEventListener('change', () => {
         if (input.checked) selected.add(turn.id);
         else selected.delete(turn.id);
-        active = 0;
+        active = -1;
         void recalculate();
       });
       head.append(
@@ -121,10 +88,12 @@ async function recalculate() {
     .filter((t) => selected.has(t.id))
     .flatMap((t) =>
       sentences(t.text)
-        .filter((s) => s.trim())
+        .map((s) => s.trim())
+        .filter(Boolean)
         .map((text) => ({ text, turnId: t.id, label: t.label })),
     );
-  target = sentences(artifact().text).filter((s) => s.trim());
+  prepared = prepareDocument(artifact().text, artifact().format);
+  target = prepared.units.map((unit) => unit.text);
   vectors = null;
   result = null;
   if (!source.length) {
@@ -132,6 +101,10 @@ async function recalculate() {
     return;
   }
   const texts = [...new Set([...source.map((s) => s.text), ...target])];
+  if (mode === 'preview') {
+    render();
+    return;
+  }
   // No network request is made by the hosted canvas. A token identifies the local CLI only.
   if (
     mode === 'semantic' &&
@@ -175,8 +148,15 @@ async function recalculate() {
       }
     }
   }
+  if (
+    mode === 'semantic' &&
+    current() === demo &&
+    !capabilities &&
+    texts.every((text) => Object.hasOwn(demoVectors, text))
+  )
+    vectors = demoVectors;
   try {
-    result = compare(source, target, vectors);
+    if (target.length) result = compare(source, target, vectors);
   } catch (error) {
     status(error.message);
   }
@@ -187,75 +167,98 @@ function scoreText(n) {
 }
 function heat(score) {
   const t = Math.max(0, Math.min(1, score));
-  return `rgb(${Math.round(248 - 64 * t)},${Math.round(221 - 1 * t)},${Math.round(153 + 57 * t)})`;
+  return `rgba(${Math.round(235 - 81 * t)},${Math.round(192 + 6 * t)},${Math.round(114 + 37 * t)},${(0.19 + Math.abs(t - 0.5) * 0.25).toFixed(2)})`;
+}
+function toggleDetails(open, focus = false) {
+  $('#details').hidden = !open;
+  $('#toggle-details').setAttribute('aria-expanded', String(open));
+  if (open && focus) $('#close-details').focus();
+}
+function updateActive() {
+  document.querySelectorAll('.sentence').forEach((node) => {
+    const isActive = Number(node.dataset.index) === active;
+    node.classList.toggle('active', isActive);
+    node.setAttribute('aria-pressed', String(isActive));
+  });
 }
 function render() {
+  const isDemo = current() === demo;
   $('#paper-title').textContent = artifact().title;
-  $('#format').textContent = artifact().format.toUpperCase();
+  $('#format').textContent =
+    artifact().format === 'markdown' ? 'MD' : artifact().format.toUpperCase();
+  $('#demo-note').hidden = !isDemo;
+  $('#demo-provenance').textContent = demoProvenance;
+  $('#selected-count').textContent = `${selected.size} / ${eligible().length}`;
+  $('#session-info').textContent =
+    `${current().title} · ${current().turns.length} 轮 prompt · ${current().artifacts.length} 个产出物`;
   document
     .querySelectorAll('[data-mode]')
     .forEach((button) =>
       button.setAttribute('aria-pressed', String(button.dataset.mode === mode)),
     );
+  const engineName =
+    mode === 'preview'
+      ? '原文'
+      : mode === 'semantic'
+        ? vectors
+          ? isDemo && !capabilities
+            ? '示例 · 语义已计算'
+            : capabilities?.engine === 'remote'
+              ? '远程语义'
+              : '本地语义'
+          : '字面预览 · 未接语义'
+        : '字面比对';
+  $('#engine-status').textContent = engineName;
   $('#engine-notice').textContent =
-    mode === 'semantic' && !vectors
-      ? '当前为字面匹配预览。接入本地模型或远程 API 后才会显示真实语义分数。'
-      : vectors
-        ? '真实句向量余弦相似度 · 表达接近不代表满足要求。'
-        : '';
+    isDemo && !capabilities
+      ? `示例使用 ${demoModel.name} 预先计算的真实句向量，筛选时在浏览器内重新匹配。导入自己的文本后需接入本地模型或远程 API，否则使用字面预览。`
+      : capabilities?.engine === 'remote'
+        ? `使用已授权的远程 API：${capabilities.endpoint}。仅发送当前所选文本。`
+        : capabilities?.engine === 'local'
+          ? '使用本地句向量模型，文本保留在本机。'
+          : '未接入语义模型，当前仅计算字面相似度。通过 Agent 接入配置本地模型或远程 API。';
   $('#threshold-value').textContent = threshold.toFixed(2);
   $('#counts').textContent =
     `${selected.size} 轮 prompt · ${target.length} 句产出`;
   $('#summary').replaceChildren();
-  if (result) {
+  $('#only-gaps').disabled = mode === 'preview';
+  $('#legend').hidden = mode === 'preview' || mode === 'diff';
+  if (result && mode !== 'preview') {
     const mean =
       result.rows.reduce(
         (sum, row) => sum + row.candidates[0].score * row.text.length,
         0,
       ) / target.join('').length;
     for (const [label, value] of [
-      [result.semantic ? '平均语义相似度' : '平均字面相似度', scoreText(mean)],
+      [result.semantic ? '相似度' : '字面相似度', scoreText(mean)],
       [
-        '原意覆盖',
-        `${result.coverage.filter((s) => s.score >= threshold).length} / ${source.length}`,
+        '需求对应',
+        `${result.coverage.filter((s) => s.score >= threshold).length}/${source.length}`,
       ],
       [
-        '低匹配产出',
+        '低匹配',
         result.rows.filter((r) => r.candidates[0].score < threshold).length,
       ],
     ]) {
       const stat = el('div');
-      stat.append(el('strong', String(value)), el('span', label));
+      stat.append(el('span', label), el('strong', String(value)));
       $('#summary').append(stat);
     }
-  }
-  if (
-    onlyGaps &&
-    result &&
-    result.rows[active]?.candidates[0].score >= threshold
-  )
-    active = result.rows.findIndex(
-      (row) => row.candidates[0].score < threshold,
-    );
+  } else
+    $('#summary').textContent =
+      mode === 'preview'
+        ? 'Markdown 阅读'
+        : !source.length
+          ? '未选择 prompt'
+          : '没有可比对的正文';
   const output = $('#output');
   output.replaceChildren();
-  if (mode === 'preview') preview(output, artifact());
+  output.classList.toggle('filtered', onlyGaps && mode !== 'preview');
+  if (mode === 'preview' || (!result && source.length && !target.length))
+    renderDocument(output, prepared);
   else if (!result)
-    output.append(
-      el(
-        'p',
-        '选择至少一轮 prompt 开始比对。若文本过长，请减少轮次。',
-        'empty',
-      ),
-    );
+    output.append(el('p', '选择至少一轮 prompt 开始比对。', 'empty'));
   else if (mode === 'diff') {
-    output.append(
-      el(
-        'p',
-        '按字面最近句配对，再显示字符修订。配对不代表语义归因；未对应的 prompt 见右侧。',
-        'subtle',
-      ),
-    );
     for (const row of result.rows) {
       if (onlyGaps && row.candidates[0].score >= threshold) continue;
       const section = el('div', undefined, 'diff-row'),
@@ -274,87 +277,63 @@ function render() {
         );
       output.append(section);
     }
+    if (!output.children.length)
+      output.append(el('p', '当前阈值下没有低匹配产出。', 'empty'));
   } else {
-    let visible = 0;
-    for (const row of result.rows) {
-      if (onlyGaps && row.candidates[0].score >= threshold) continue;
-      const node = el(
-        'button',
-        row.text,
-        'sentence' + (active === row.index ? ' active' : ''),
-      );
-      node.style.background = heat(row.candidates[0].score);
+    renderDocument(output, prepared, (node, unit) => {
+      const row = result.rows[unit.index];
+      node.className = 'sentence';
+      node.dataset.index = String(row.index);
+      node.setAttribute('role', 'button');
+      node.tabIndex = 0;
+      node.hidden = onlyGaps && row.candidates[0].score >= threshold;
+      node.style.backgroundColor = heat(row.candidates[0].score);
       node.title = `${result.semantic ? '语义' : '字面'}相似度 ${scoreText(row.candidates[0].score)}`;
-      node.setAttribute('aria-pressed', String(active === row.index));
-      node.addEventListener('click', () => {
+      function activate() {
         active = row.index;
-        render();
+        toggleDetails(true);
+        updateActive();
+        inspect();
+      }
+      node.addEventListener('click', activate);
+      node.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          activate();
+        }
       });
-      output.append(node);
-      visible++;
+    });
+    // Keep section titles as context while removing empty body blocks after filtering.
+    if (onlyGaps) {
+      output.querySelectorAll('p, li, pre, tr').forEach((node) => {
+        const marks = [...node.querySelectorAll('.sentence')];
+        if (marks.length && marks.every((mark) => mark.hidden))
+          node.hidden = true;
+      });
+      if (result.rows.every((row) => row.candidates[0].score >= threshold))
+        output.replaceChildren(el('p', '当前阈值下没有低匹配产出。', 'empty'));
     }
-    if (!visible) output.append(el('p', '当前阈值下没有低匹配产出。', 'empty'));
+    updateActive();
   }
   inspect();
-}
-function preview(output, item) {
-  if (item.format === 'json') {
-    try {
-      output.append(el('pre', JSON.stringify(JSON.parse(item.text), null, 2)));
-    } catch {
-      output.append(el('pre', item.text));
-    }
-    return;
-  }
-  if (item.format === 'markdown') {
-    // Deliberately small, inert Markdown preview: headings, paragraphs, fenced code.
-    let inCode = false,
-      code = [];
-    for (const line of item.text.split('\n')) {
-      if (line.startsWith('```')) {
-        if (inCode) {
-          output.append(el('pre', code.join('\n')));
-          code = [];
-        }
-        inCode = !inCode;
-        continue;
-      }
-      if (inCode) {
-        code.push(line);
-        continue;
-      }
-      const match = line.match(/^(#{1,3})\s+(.*)$/);
-      output.append(
-        el(match ? `h${match[1].length}` : 'p', match ? match[2] : line),
-      );
-    }
-    if (code.length) output.append(el('pre', code.join('\n')));
-    return;
-  }
-  // HTML/code remains inert source, never executes or fetches embedded URLs.
-  output.append(el('pre', item.text));
 }
 function inspect() {
   const box = $('#inspection');
   box.replaceChildren();
   $('#gaps').replaceChildren();
-  const row = result?.rows[active];
+  const row = mode !== 'preview' && result?.rows[active];
   if (row) {
     box.append(
-      el(
-        'div',
-        result.semantic ? '语义相似度 · cosine' : '字面相似度 · Dice',
-        'detail-label',
-      ),
+      el('div', result.semantic ? '语义相似度' : '字面相似度', 'detail-label'),
       el('div', scoreText(row.candidates[0].score), 'detail-score'),
       el('p', row.text, 'quote'),
-      el('div', '最接近的 prompt 句子', 'detail-label'),
+      el('div', '对应的 prompt', 'detail-label'),
     );
     for (const match of row.candidates) {
       const ref = source[match.index],
         candidate = el('button', undefined, 'candidate');
       candidate.append(
-        el('strong', `${scoreText(match.score)} · ${ref.label}`),
+        el('strong', `${ref.label} · ${scoreText(match.score)}`),
         el('span', ref.text),
       );
       candidate.addEventListener('click', () => {
@@ -369,14 +348,20 @@ function inspect() {
     }
   } else
     box.append(
-      el('p', '点击产出中的一句话，查看它与所选 prompt 的对应关系。', 'empty'),
+      el(
+        'p',
+        mode === 'preview'
+          ? '切回比对视图后查看句子出处。'
+          : '点选正文中的一句话。',
+        'empty',
+      ),
     );
   const gaps = result?.coverage.filter((s) => s.score < threshold) || [];
-  $('#gap-count').textContent = String(gaps.length);
+  $('#gap-count').textContent = result ? String(gaps.length) : '—';
   for (const ref of gaps) {
     const node = el('div', undefined, 'gap');
     node.append(
-      el('small', `${ref.label} · 最佳匹配 ${scoreText(ref.score)}`),
+      el('small', `${ref.label} · ${scoreText(ref.score)}`),
       el('span', ref.text),
     );
     $('#gaps').append(node);
@@ -385,9 +370,7 @@ function inspect() {
     $('#gaps').append(
       el(
         'p',
-        result
-          ? '当前阈值下没有低匹配要求；这不保证要求已被正确执行。'
-          : '选择 prompt 后显示。',
+        result ? '当前阈值下没有低匹配要求。' : '选择 prompt 后显示。',
         'subtle',
       ),
     );
@@ -399,6 +382,7 @@ function addSession(value) {
   artifactIndex = parsed.artifacts.length - 1;
   resetSelection();
   renderSelectors();
+  $('#settings-dialog').close();
   void recalculate();
 }
 $('#sessions').addEventListener('change', () => {
@@ -495,7 +479,10 @@ $('#export').addEventListener('click', () => {
   link.click();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 });
-$('#paste').addEventListener('click', () => $('#paste-dialog').showModal());
+$('#paste').addEventListener('click', () => {
+  $('#settings-dialog').close();
+  $('#paste-dialog').showModal();
+});
 $('#paste-form').addEventListener('submit', (event) => {
   event.preventDefault();
   try {
@@ -511,7 +498,7 @@ $('#paste-form').addEventListener('submit', (event) => {
           title: 'AI 产出',
           text: $('#result-text').value,
           turnId: 't1',
-          format: 'text',
+          format: 'markdown',
         },
       ],
     });
@@ -528,11 +515,63 @@ function installPrompt() {
   const kind = $('#install-type').value,
     engine = $('#compute').value;
   $('#install-prompt').value =
-    `请给我安装 Wordiff ${kind === 'skill' ? 'Skill 和本地 CLI' : '本地 CLI'}，用于比对当前会话中的原始 prompt 与 AI 产出。\n仓库：https://github.com/BrantonLiu/wordiff\n先读取仓库 docs/agent-canvas.md 并确认包含 cli/wordiff.mjs；开发版使用 codex/agent-canvas 分支或用户提供的本地 checkout。若远端没有该分支，请报告尚未发布，不要假装安装成功。把仓库放到我本地专用工具目录，保留已有文件。${kind === 'skill' ? '运行 node cli/wordiff.mjs install --target <此 Agent 的技能目录>；Codex 可使用 ~/.agents/skills。' : ''}\n只使用当前会话可见的用户 prompt 和我指定的 AI 产出，保留原文、轮次与出处；不要搜索其他对话，也不要包含系统提示、密钥或工具日志。Codex 可运行 capture --current；若不可用，由你按文档导出 session.json。\n计算方式：${engine === 'local' ? '本地语义。创建独立 Python 环境并安装 cli/requirements.txt，首次下载模型后在本地推理。' : engine === 'remote' ? '远程语义。请先向我获取 API 服务地址、模型名及上传许可；密钥通过环境变量配置，不写入会话文件。' : '本地字面比对，不安装模型。'}\n运行 node cli/wordiff.mjs serve --session <session.json> --engine ${engine}${engine === 'local' ? ' --python <虚拟环境中的python>' : ''}${engine === 'remote' ? ' --allow-remote' : ''}，保持服务进程存活，将返回的完整本地链接在 Agent 侧边浏览器或系统浏览器打开。告诉我哪些内容已采集、哪些因会话权限不可见。`;
+    `请给我安装 Wordiff ${kind === 'skill' ? 'Skill 和本地 CLI' : '本地 CLI'}，用于比对当前会话中的原始 prompt 与 AI 产出。\n仓库：https://github.com/BrantonLiu/wordiff\n先读取仓库 docs/agent-canvas.md 并确认包含 cli/wordiff.mjs；使用仓库 main 或用户提供的本地 checkout；如果缺少安装文件，请报告版本不符。把仓库放到我本地专用工具目录，保留已有文件。${kind === 'skill' ? '运行 node cli/wordiff.mjs install --target <此 Agent 的技能目录>；Codex 可使用 ~/.agents/skills。' : ''}\n只使用当前会话可见的用户 prompt 和我指定的 AI 产出，保留原文、轮次与出处；不要搜索其他对话，也不要包含系统提示、密钥或工具日志。Codex 可运行 capture --current；若不可用，由你按文档导出 session.json。\n计算方式：${engine === 'local' ? '本地语义。创建独立 Python 环境并安装 cli/requirements.txt，首次下载模型后在本地推理。' : engine === 'remote' ? '远程语义。请先向我获取 API 服务地址、模型名及上传许可；密钥通过环境变量配置，不写入会话文件。' : '本地字面比对，不安装模型。'}\n运行 node cli/wordiff.mjs serve --session <session.json> --engine ${engine}${engine === 'local' ? ' --python <虚拟环境中的python>' : ''}${engine === 'remote' ? ' --allow-remote' : ''}，保持服务进程存活，将返回的完整本地链接在 Agent 侧边浏览器或系统浏览器打开。告诉我哪些内容已采集、哪些因会话权限不可见。`;
 }
-$('#install').addEventListener('click', () => {
+function settingsTab(name) {
+  for (const tab of document.querySelectorAll('[data-settings]')) {
+    const enabled = tab.dataset.settings === name;
+    tab.setAttribute('aria-selected', String(enabled));
+    tab.tabIndex = enabled ? 0 : -1;
+    document.getElementById(`settings-${tab.dataset.settings}`).hidden =
+      !enabled;
+  }
   installPrompt();
-  $('#install-dialog').showModal();
+}
+function openSettings(name = 'compare') {
+  settingsTab(name);
+  $('#settings-dialog').showModal();
+}
+$('#settings').addEventListener('click', () => openSettings());
+$('#manage').addEventListener('click', () => openSettings('data'));
+$('#engine-status').addEventListener('click', () => openSettings());
+$('#configure-engine').addEventListener('click', () => {
+  settingsTab('agent');
+  $('#install-type').focus();
+});
+for (const tab of document.querySelectorAll('[data-settings]')) {
+  tab.addEventListener('click', () => settingsTab(tab.dataset.settings));
+  tab.addEventListener('keydown', (event) => {
+    const names = ['compare', 'data', 'agent'];
+    let index = names.indexOf(tab.dataset.settings);
+    if (event.key === 'ArrowRight') index = (index + 1) % 3;
+    else if (event.key === 'ArrowLeft') index = (index + 2) % 3;
+    else if (event.key === 'Home') index = 0;
+    else if (event.key === 'End') index = 2;
+    else return;
+    event.preventDefault();
+    settingsTab(names[index]);
+    $(`#tab-${names[index]}`).focus();
+  });
+}
+$('#toggle-details').addEventListener('click', () =>
+  toggleDetails($('#details').hidden, true),
+);
+$('#close-details').addEventListener('click', () => {
+  toggleDetails(false);
+  $('#toggle-details').focus();
+});
+document.addEventListener('keydown', (event) => {
+  if (
+    event.key === 'Escape' &&
+    !document.querySelector('dialog[open]') &&
+    !$('#details').hidden
+  ) {
+    toggleDetails(false);
+    const selectedSentence = document.querySelector(
+      `.sentence[data-index="${active}"]`,
+    );
+    (selectedSentence || $('#toggle-details')).focus();
+  }
 });
 $('#install-type').addEventListener('change', installPrompt);
 $('#compute').addEventListener('change', installPrompt);
@@ -582,7 +621,6 @@ for (const event of ['pointerup', 'pointercancel'])
 const token = new URLSearchParams(location.hash.slice(1)).get('token');
 if (token) {
   $('.brand').href = location.href;
-  $('.source-foot a').hidden = true;
   try {
     const response = await fetch('/api/session', {
       headers: { Authorization: `Bearer ${token}` },
@@ -598,7 +636,7 @@ if (token) {
     $('#privacy').textContent =
       capabilities.engine === 'remote'
         ? `远程计算 · ${capabilities.endpoint}`
-        : '本地进程 · 文本保留在本机';
+        : '本地计算';
   } catch (e) {
     status(e.message);
   }

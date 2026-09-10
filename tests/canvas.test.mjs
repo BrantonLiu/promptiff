@@ -155,6 +155,22 @@ test('loopback server protects session and model endpoints; serves inert canvas'
   const token = new URLSearchParams(base.hash.slice(1)).get('token');
   try {
     assert.equal((await fetch(base.origin)).status, 200);
+    for (const file of [
+      'canvas.mjs',
+      'core.mjs',
+      'document.mjs',
+      'demo.mjs',
+      'demo-vectors.mjs',
+    ]) {
+      const asset = await fetch(`${base.origin}/${file}`);
+      assert.equal(asset.status, 200, file);
+      assert.match(asset.headers.get('content-type'), /javascript/);
+      assert.equal(
+        (await fetch(`${base.origin}/canvas/${file}`)).status,
+        200,
+        `canvas/${file}`,
+      );
+    }
     assert.equal((await fetch(`${base.origin}/api/session`)).status, 401);
     const res = await fetch(`${base.origin}/api/session`, {
       headers: { Authorization: `Bearer ${token}` },
@@ -198,6 +214,17 @@ test('skill installer bundles runtime and refuses overwriting an existing skill'
     assert.match(
       await readFile(join(dest, 'runtime/public/canvas/core.mjs'), 'utf8'),
       /validateSession/,
+    );
+    assert.match(
+      await readFile(join(dest, 'runtime/public/canvas/document.mjs'), 'utf8'),
+      /renderDocument/,
+    );
+    assert.match(
+      await readFile(
+        join(dest, 'runtime/public/canvas/demo-vectors.mjs'),
+        'utf8',
+      ),
+      /demoVectors/,
     );
     await assert.rejects(() => installSkill(dir), /目标已存在/);
   } finally {

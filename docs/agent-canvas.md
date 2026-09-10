@@ -1,12 +1,12 @@
 # Agent 比对画布
 
-在独立分支 `codex/agent-canvas` 开发。网站入口 `/canvas`，原有四种示例视图保留。此分支合并/发布前，GitHub 默认分支不保证包含安装文件；开发试用应指定本地 checkout 或该功能分支。
+网站入口 `/canvas`，原有四种示例视图保留。本地 CLI 与网站使用同一套画布文件。
 
 ## 复制给 Agent 的指令
 
-网站右上角「接入你的 Agent」按 Skill / CLI 和计算方式生成指令。可直接复制下面这段：
+网站右上角「设置 → Agent 接入」按 Skill / CLI 和计算方式生成指令。可直接复制下面这段：
 
-> 请安装 Wordiff 本地比对工具。读取 https://github.com/BrantonLiu/wordiff 中 docs/agent-canvas.md；开发版使用 codex/agent-canvas 分支或已提供的本地 checkout。将项目放在专用工具目录，不覆盖已有文件。使用 Node 22.13+，运行 `node cli/wordiff.mjs install --target <你的技能目录>`（Codex 通常为 `~/.agents/skills`）。只采集当前任务可见的用户原始 prompt 和我选择的 AI 产出，保留轮次，不带系统指令、工具日志、凭证或其他对话。Codex 用 `capture --current --out <新的 session.json 路径>`；不支持当前任务日志时从可见上下文导出文档里的 JSON，不能猜测缺失的原文。运行 `serve --session <文件> --engine lexical`，保持进程存活，在侧边浏览器或普通浏览器打开返回的完整链接。若我要真实语义比对，使用本文档的本地模型方式；只有我选择远程并允许上传时才使用远程方式。
+> 请安装 Wordiff 本地比对工具。读取 https://github.com/BrantonLiu/wordiff 中 docs/agent-canvas.md；使用仓库 main 或已提供的本地 checkout，先确认包含 `cli/wordiff.mjs`。将项目放在专用工具目录，不覆盖已有文件。使用 Node 22.13+，运行 `node cli/wordiff.mjs install --target <你的技能目录>`（Codex 通常为 `~/.agents/skills`）。只采集当前任务可见的用户原始 prompt 和我选择的 AI 产出，保留轮次，不带系统指令、工具日志、凭证或其他对话。Codex 用 `capture --current --out <新的 session.json 路径>`；不支持当前任务日志时从可见上下文导出文档里的 JSON，不能猜测缺失的原文。运行 `serve --session <文件> --engine lexical`，保持进程存活，在侧边浏览器或普通浏览器打开返回的完整链接。若我要真实语义比对，使用本文档的本地模型方式；只有我选择远程并允许上传时才使用远程方式。
 
 这段指令不依赖某款 Agent 能执行任意隐藏 API。Skill 是可被 Agent 发现的使用说明，CLI 执行确定性采集和本地服务；网页本身不能读取 Agent 会话。DSH 未确认具体产品及会话接口，暂使用通用 JSON 导出路径。
 
@@ -42,9 +42,9 @@ node cli/wordiff.mjs serve --session /absolute/path/session.json
 }
 ```
 
-数组顺序即对话顺序。`turnId` 是产出生成前最后一轮用户输入；选择初稿时后续要求不可选。支持 text、markdown、json、csv、html、code。Markdown 提供基础标题、段落和代码块预览；HTML/代码显示安全源码，不执行脚本，不加载产出内链接或远程资源。PDF/DOCX/图片需由 Agent 先提取文字并标注来源，不支持版式或像素比对。
+数组顺序即对话顺序。`turnId` 是产出生成前最后一轮用户输入；选择初稿时后续要求不可选。支持 text、markdown、json、csv、html、code。Markdown 的比对与预览共享排版，支持标题、段落、列表、引用、表格、围栏代码、粗体、斜体和行内代码。嵌套列表扁平显示，脚注与数学公式等扩展语法不解析。HTML/代码显示安全源码，不执行脚本，不加载产出内链接或远程资源。PDF/DOCX/图片需由 Agent 先提取文字并标注来源，不支持版式或像素比对。
 
-单个会话最多 100 轮、50 个产出、60,000 字符；单次最多 600 句，长句按 100 个 Unicode 字符分块。网站可以导入 JSON、直接粘贴一组文本、追加文本产出；所有操作只在当前页面内存中，刷新会丢失，使用「导出会话」主动保存。
+单个会话最多 100 轮、50 个产出、60,000 字符；单次最多 600 句，长句按 100 个 Unicode 字符分块。网站可以导入 JSON、直接粘贴一组文本、追加文本产出；所有操作只在当前页面内存中，刷新会丢失，使用「设置 → 会话与文件 → 导出当前会话」主动保存。
 
 ## 三种计算方式
 
@@ -80,7 +80,7 @@ node cli/wordiff.mjs serve --session /absolute/path/session.json --engine remote
 
 ## 如何读结果
 
-语义来自真实句向量余弦。未配置/计算失败时清楚标注字面预览，不输出伪语义分数。平均值按输出字符加权，不能解释为「满足了多少百分比的原意」。参考阈值可调；右侧逆向覆盖帮助发现丢失的要求，正向匹配帮助发现新增内容。高相似度也可能隐藏否定、主体或数字变化，需人工检查。多轮指令矛盾不会被算法自行裁定，也不会自动视作被后续 prompt 撤销。
+语义来自真实句向量余弦。内置示例根据本项目两轮需求整理，方案为演示改写而非交付记录，特意包含遗漏和额外扩展。47 条示例句向量已经离线计算并随页面打包，切换轮次时重新计算匹配；标题与表头保留排版，但不作为正文计分。自己的会话未接入模型或计算失败时，明确标为字面预览，不套用示例分数。平均值按输出字符加权，不能解释为「满足了多少百分比的原意」。参考阈值可调；右侧逆向覆盖帮助发现丢失的要求，正向匹配帮助发现新增内容。高相似度也可能隐藏否定、主体或数字变化，需人工检查。多轮指令矛盾不会被算法自行裁定，也不会自动视作被后续 prompt 撤销。
 
 ## Codex 分发边界
 
@@ -99,3 +99,17 @@ npm run build
 新增测试覆盖 Unicode 分句、双向覆盖、字符 diff 重建、非法数据、当前会话定位、重复日志、远程模式授权、向量校验、本地 API 防护及独立安装包。
 
 开发验证记录：26 项测试、TypeScript、lint 与完整 Vinext 构建通过。通过本地 HTTP embeddings 接口实际计算了 384 维向量，并在 `HF_HUB_OFFLINE=1` 下验证缓存推理。远程协议使用模拟服务验证请求范围和响应排序，尚未接入真实付费服务。保留最新主分支的 Wrangler compatibility_date（2026-05-22），与锁定的本地 runtime 兼容。尚未进行浏览器交互/截图测试。
+
+## 阅读布局与示例复现
+
+主流程是选择 prompt 轮次、阅读产出、点选句子查看出处。出处面板默认收起；参数、数据操作与安装指令集中在设置。正文使用系统字体，桌面 15px / 1.9 行高，手机 14px；标题采用独立行高，句子高亮不改变文本盒子的高度。原始文本完整保留在会话导出中。
+
+排版参考了 [Obsidian 的样式变量](https://docs.obsidian.md/Reference/CSS%20variables/About%20styling) 和 [Reader 的内容阅读方式](https://obsidian.md/help/web-clipper/reader)，不是对其主题的逐像素复刻。
+
+修改示例文案后，在准备好本地模型的 checkout 运行：
+
+```sh
+HF_HUB_OFFLINE=1 node scripts/build-canvas-demo.mjs .venv/bin/python
+```
+
+生成器仅计算 `public/canvas/demo.mjs` 中整理过的示例，不读取其他会话。`demo-vectors.mjs` 记录模型 revision、384 维向量和文本 SHA-256；测试确保内容变化后不会沿用过期向量。
