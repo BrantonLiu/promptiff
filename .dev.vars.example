@@ -1,0 +1,7 @@
+# Copy to .dev.vars and fill in your own Supabase project.
+# Keep .dev.vars out of version control.
+SUPABASE_URL="https://YOUR_PROJECT_REF.supabase.co"
+SUPABASE_ANON_KEY="YOUR_SUPABASE_ANON_KEY"
+SUPABASE_SERVICE_ROLE_KEY="YOUR_SERVER_ONLY_SERVICE_ROLE_KEY"
+# Match the address shown by the local dev server, including its port.
+SITE_URL="http://localhost:3000"
