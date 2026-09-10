@@ -23,11 +23,19 @@ const levels:Record<Level,{label:string;short:string;desc:string}> = {
  high:{label:'高度改写',short:'重写',desc:'从账号的目标开篇，大幅压缩和重组；保留主要经历与立场，改变表达重心。'},
 };
 const percent=(n:number)=>`${(n*100).toFixed(1)}%`;
-const heatColor=(n:number,semantic=false)=>{
+const heatRgb=(n:number,semantic=false):[number,number,number]=>{
  const t=Math.max(0,Math.min(1,semantic?(n-.45)/.5:n));
  const a=[249,220,132],b=[182,212,240];
- return `rgb(${a.map((v,i)=>Math.round(v+(b[i]-v)*t)).join(',')})`;
+ return a.map((v,i)=>Math.round(v+(b[i]-v)*t)) as [number,number,number];
 };
+const rgb=(color:[number,number,number])=>`rgb(${color.join(',')})`;
+const mixRgb=(a:[number,number,number],b:[number,number,number])=>a.map((v,i)=>Math.round((v+b[i])/2)) as [number,number,number];
+function diffuseHeat(score:number,previous:number|undefined,next:number|undefined,semantic=false){
+ const center=heatRgb(score,semantic);
+ const start=previous===undefined?center:mixRgb(heatRgb(previous,semantic),center);
+ const end=next===undefined?center:mixRgb(center,heatRgb(next,semantic));
+ return {backgroundImage:`linear-gradient(180deg,rgba(255,255,255,.48) 0%,rgba(255,255,255,0) 24%,rgba(255,255,255,0) 76%,rgba(255,255,255,.48) 100%),linear-gradient(90deg,${rgb(start)} 0%,${rgb(center)} 24%,${rgb(center)} 76%,${rgb(end)} 100%)`};
+}
 function DiffParts({ops,side}:{ops:Op[];side:'old'|'new'}){
  return <>{ops.map((op,i)=>{const txt=op[side];if(!txt)return null;return <span key={i} className={op.type==='equal'?'':side==='old'?'diff-word-delete':'diff-word-add'}>{txt}</span>})}</>;
 }
@@ -74,21 +82,30 @@ export default function Wordiff({initialMode='lexical',initialLevel='medium'}:{i
   const other=side==='left'?right.current:left.current, el=e.currentTarget;
   if(other){syncing.current=true;other.scrollTop=(el.scrollTop/Math.max(1,el.scrollHeight-el.clientHeight))*(other.scrollHeight-other.clientHeight);requestAnimationFrame(()=>{syncing.current=false})}
  }
+ function focusSource(id:number,revealOriginal=false){
+  setHighlightedSource(id);
+  if(revealOriginal)setMobileSide('original');
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+   const el=sourceRefs.current[id],panel=left.current;
+   if(!el||!panel)return;
+   syncing.current=true;
+   panel.scrollTo({top:el.getBoundingClientRect().top-panel.getBoundingClientRect().top+panel.scrollTop-90,behavior:'smooth'});
+   setTimeout(()=>{syncing.current=false},500);
+  }));
+ }
  function inspect(sid:number,word?:number){
   setSelected({sentence:sid,word});
   const s=current.sentences[sid];const id=mode==='semantic'?s.semantic.source:s.lexical.source;
-  setHighlightedSource(id);
-  const el=sourceRefs.current[id], panel=left.current;
-  if(el&&panel){syncing.current=true;panel.scrollTo({top:el.getBoundingClientRect().top-panel.getBoundingClientRect().top+panel.scrollTop-90,behavior:'smooth'});setTimeout(()=>{syncing.current=false},500)}
+  focusSource(id);
  }
  function nextDifference(){if(!jumpTargets.length)return;const i=(jumpIndex+1)%jumpTargets.length;setJumpIndex(i);const s=jumpTargets[i];inspect(s.id);document.getElementById(`target-${s.id}`)?.scrollIntoView({behavior:'smooth',block:'center'})}
  async function copyLink(){try{await navigator.clipboard.writeText(window.location.href);setToast('当前视图链接已复制')}catch{setToast('复制失败，请复制浏览器地址栏中的链接')}}
- function openOriginal(){setSelected(null);setMobileSide('original');requestAnimationFrame(()=>{const el=highlightedSource!==null?sourceRefs.current[highlightedSource]:null;const panel=left.current;if(el&&panel)panel.scrollTop=el.getBoundingClientRect().top-panel.getBoundingClientRect().top+panel.scrollTop-90})}
+ function openOriginal(){setSelected(null);if(highlightedSource!==null)focusSource(highlightedSource,true);else setMobileSide('original')}
  function renderSentence(s:Sentence){
   // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role -- Inline highlights must wrap across text lines; native buttons are atomic boxes.
-  if(mode==='semantic')return <span key={s.id} id={`target-${s.id}`} role="button" tabIndex={0} className={`heat-unit ${selected?.sentence===s.id?'selected-unit':''}`} style={{background:heatColor(s.semantic.score,true)}} onClick={()=>inspect(s.id)} onKeyDown={e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();inspect(s.id)}}} title={`语义余弦 ${s.semantic.score.toFixed(3)} · 点击查看原句`}>{s.text}</span>;
+  if(mode==='semantic')return <span key={s.id} id={`target-${s.id}`} role="button" tabIndex={0} className={`heat-unit ${selected?.sentence===s.id?'selected-unit':''}`} style={diffuseHeat(s.semantic.score,current.sentences[s.id-1]?.semantic.score,current.sentences[s.id+1]?.semantic.score,true)} onClick={()=>inspect(s.id)} onKeyDown={e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();inspect(s.id)}}} title={`语义余弦 ${s.semantic.score.toFixed(3)} · 点击查看原句`}>{s.text}</span>;
   // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role -- Keyboard-enabled inline word highlights preserve natural text wrapping.
-  return <span key={s.id} id={`target-${s.id}`} className={selected?.sentence===s.id?'selected-sentence':''}>{s.lexical.words.map((w,i)=><span role="button" tabIndex={0} key={i} className={`heat-unit word-unit ${selected?.sentence===s.id&&selected.word===i?'selected-unit':''}`} style={{background:heatColor(w.score)}} onClick={()=>inspect(s.id,i)} onKeyDown={e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();inspect(s.id,i)}}} title={`「${w.text}」字面保留分 ${w.score.toFixed(2)} · 点击查看依据`}>{w.text}</span>)}</span>;
+  return <span key={s.id} id={`target-${s.id}`}>{s.lexical.words.map((w,i)=><span role="button" tabIndex={0} key={i} className={`heat-unit word-unit ${selected?.sentence===s.id&&selected.word===i?'selected-unit':''}`} style={diffuseHeat(w.score,s.lexical.words[i-1]?.score,s.lexical.words[i+1]?.score)} onClick={()=>inspect(s.id,i)} onKeyDown={e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();inspect(s.id,i)}}} title={`「${w.text}」字面保留分 ${w.score.toFixed(2)} · 点击查看依据`}>{w.text}</span>)}</span>;
  }
  return <main className="workspace">
   <header className="topbar"><Link className="brand" href="/"><span className="brandmark"><ScanText size={21}/></span>wordiff<span className="beta">LAB</span></Link><span className="top-caption">让改写有迹可循</span><Button variant="ghost" onClick={()=>setMethods(true)}><BookOpen/> 实验说明 <ArrowUpRight size={14}/></Button><a className="download-button" href="/data/all-versions.md" download><Download size={14}/><span>下载四篇文章</span></a></header>
@@ -110,7 +127,7 @@ export default function Wordiff({initialMode='lexical',initialLevel='medium'}:{i
       <div className="mobile-tabs"><Button variant="ghost" aria-pressed={mobileSide==='original'} onClick={()=>setMobileSide('original')}>作者原文</Button><Button variant="ghost" aria-pressed={mobileSide==='rewrite'} onClick={()=>setMobileSide('rewrite')}>{levels[level].label}</Button></div>
       <section className={`comparison mobile-${mobileSide}`}>
        {/* oxlint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- The scroll panel is focusable for keyboard scrolling. */}
-       <article className="paper original-paper"><div className="paperbar"><span><i className="dot"/>作者原文 <small>ORIGINAL</small></span><small>{original.chars.toLocaleString()} 字 · 口述原稿</small></div><div ref={left} className="article-scroll" onScroll={e=>scrollTogether(e,'left')} tabIndex={0} aria-label="作者原文，可滚动"><div className="article-body"><div className="document-label">一位读者的自述 · 展示标题</div><h2>我为什么做这个《毛选》账号</h2><div className="byline">Branton · 2026 年 9 月 10 日 · 北京</div>{original.paragraphs.map((p,i)=><p key={i}><span className="paragraph-number">{String(i+1).padStart(2,'0')}</span>{p.sentences.map(id=><span key={id} ref={el=>{sourceRefs.current[id]=el}} className={matchId===id?'source-match':''}>{original.sentences[id].text}</span>)}</p>)}</div></div><div className="panel-foot"><span className="tiny-dot"/>原文完整保留，包括口述中的待核实信息</div></article>
+       <article className="paper original-paper"><div className="paperbar"><span><i className="dot"/>作者原文 <small>ORIGINAL</small></span><small>{original.chars.toLocaleString()} 字 · 口述原稿</small></div><div ref={left} className="article-scroll" onScroll={e=>scrollTogether(e,'left')} tabIndex={0} aria-label="作者原文，可滚动"><div className="article-body"><div className="document-label">一位读者的自述 · 展示标题</div><h2>我为什么做这个《毛选》账号</h2><div className="byline">Branton · 2026 年 9 月 10 日 · 北京</div>{original.paragraphs.map((p,i)=><p key={i}><span className="paragraph-number">{String(i+1).padStart(2,'0')}</span>{p.sentences.map(id=><span key={id} ref={el=>{sourceRefs.current[id]=el}} className={matchId===id?'source-match':''} data-source-id={id}>{original.sentences[id].text}</span>)}</p>)}</div></div><div className="panel-foot"><span className="tiny-dot"/>原文完整保留，包括口述中的待核实信息</div></article>
        {/* oxlint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- The scroll panel is focusable for keyboard scrolling. */}
        <article className="paper rewrite-paper"><div className="paperbar"><span><i className="dot amber"/>{levels[level].label} <small>AI REWRITE</small></span><small>{current.chars.toLocaleString()} 字 · {current.sentences.length} 个句子 / 分句</small></div><div ref={right} className="article-scroll" onScroll={e=>scrollTogether(e,'right')} tabIndex={0} aria-label="改写文章，可滚动"><div className={`article-body ${heat?'heat':''}`}><div className="document-label">{level==='low'?'保留口述节奏':level==='medium'?'压缩重复 · 整理叙事':level==='high'?'改变开篇 · 大幅重组':'原文自对照'} · 展示标题</div><h2>{level==='high'?'把读者带到《毛选》原文附近':'我为什么做这个《毛选》账号'}</h2><div className="byline">{levels[level].desc}</div>{mode==='review'?<Review doc={current} hideDeleted={hideDeleted}/>:current.paragraphs.map((p,i)=><p key={i}><span className="paragraph-number">{String(i+1).padStart(2,'0')}</span>{p.sentences.map(id=>renderSentence(current.sentences[id]))}</p>)}</div></div><div className="panel-foot">{heat?<><span><Info size={12}/> 点击色块，追溯对应原句</span><Button variant="ghost" size="xs" disabled={!jumpTargets.length} onClick={nextDifference}>下一处明显变化 <ArrowDown size={12}/></Button></>:<span>−{current.stats.deleted} 字删除 · +{current.stats.added} 字增加（均含替换）</span>}</div></article>
       </section>
@@ -118,7 +135,7 @@ export default function Wordiff({initialMode='lexical',initialLevel='medium'}:{i
    </TabsContent>)}
   </Tabs>
   <footer className="workspace-footer"><span><i className="tiny-dot"/>真实算法 · 全文比较 · 本地预计算</span><span>颜色表示相似程度，不能判定作者归属或事实真伪。</span><Button size="xs" variant="ghost" onClick={()=>setMethods(true)}>计算方式与编辑说明 <ArrowUpRight size={12}/></Button></footer>
-  {selectedSentence&&selectedSource&&<aside className="inspector" aria-label="匹配依据"><div className="inspector-head"><span>{mode==='semantic'?<Sparkles size={15}/>:<Grid2X2 size={15}/>} {mode==='semantic'?'语义匹配依据':'分词匹配依据'}</span><Button variant="ghost" size="icon-sm" onClick={()=>setSelected(null)} aria-label="关闭匹配详情"><X size={15}/></Button></div><div className="inspector-body"><div className="match-score"><span>{mode==='semantic'?'句子余弦相似度':selected?.word!==undefined?`「${selectedSentence.lexical.words[selected.word].text}」字面保留分`:'句子字面匹配分'}</span><strong>{(mode==='semantic'?selectedSentence.semantic.score:selected?.word!==undefined?selectedSentence.lexical.words[selected.word].score:selectedSentence.lexical.score).toFixed(3)}</strong></div><small>改写片段</small><p>{selectedSentence.text}</p><small>最接近的原文 · 第 {selectedSource.p+1} 段 / 第 {selectedSource.id+1} 句</small><blockquote>{selectedSource.text}</blockquote>{mode==='semantic'?<><div className="candidate-list">{selectedSentence.semantic.candidates.map((c,i)=><div key={c.source}><span>候选 {i+1} · 原文第 {c.source+1} 句</span><b>{c.score.toFixed(3)}</b></div>)}</div><div className="inspector-note">模型 tokenizer：{selectedSentence.semantic.tokenCount} tokens · {data.meta.dimensions} 维向量。相似度高仍可能含有否定、数字或立场变化。</div></>:<div className="inspector-note">先找到字面最接近的原句，再对分词做序列匹配。原位保留得 1 分，移位复用与局部字形相似得较低分；不理解词义。</div>}<Button className="mobile-source-button" variant="outline" onClick={openOriginal}>查看对应原文 <ArrowUpRight size={13}/></Button></div></aside>}
+  {selectedSentence&&selectedSource&&<aside className="inspector" aria-label="匹配依据"><div className="inspector-head"><span>{mode==='semantic'?<Sparkles size={15}/>:<Grid2X2 size={15}/>} {mode==='semantic'?'语义匹配依据':'分词匹配依据'}</span><Button variant="ghost" size="icon-sm" onClick={()=>setSelected(null)} aria-label="关闭匹配详情"><X size={15}/></Button></div><div className="inspector-body"><div className="match-score"><span>{mode==='semantic'?'句子余弦相似度':selected?.word!==undefined?`「${selectedSentence.lexical.words[selected.word].text}」字面保留分`:'句子字面匹配分'}</span><strong>{(mode==='semantic'?selectedSentence.semantic.score:selected?.word!==undefined?selectedSentence.lexical.words[selected.word].score:selectedSentence.lexical.score).toFixed(3)}</strong></div><small>改写片段</small><p>{selectedSentence.text}</p><small>当前原文 · 第 {selectedSource.p+1} 段 / 第 {selectedSource.id+1} 句</small><blockquote>{selectedSource.text}</blockquote>{mode==='semantic'?<><div className="candidate-list" aria-label="语义匹配候选集">{selectedSentence.semantic.candidates.map((c,i)=>{const source=original.sentences[c.source];return <button type="button" key={c.source} className={matchId===c.source?'active':''} aria-current={matchId===c.source?'location':undefined} aria-label={`定位到候选 ${i+1}，原文第 ${source.p+1} 段，第 ${source.id+1} 句`} onClick={()=>focusSource(c.source,true)}><span>候选 {i+1} · 第 {source.p+1} 段 / 第 {source.id+1} 句</span><b>{c.score.toFixed(3)}</b></button>})}</div><div className="inspector-note">点击候选可定位到对应原文。模型 tokenizer：{selectedSentence.semantic.tokenCount} tokens · {data.meta.dimensions} 维向量。相似度高仍可能含有否定、数字或立场变化。</div></>:<div className="inspector-note">先找到字面最接近的原句，再对分词做序列匹配。原位保留得 1 分，移位复用与局部字形相似得较低分；不理解词义。</div>}<Button className="mobile-source-button" variant="outline" onClick={openOriginal}>查看对应原文 <ArrowUpRight size={13}/></Button></div></aside>}
   {toast&&<output className="toast">{toast}</output>}
   <Dialog open={methods} onOpenChange={setMethods}><DialogContent className="methods-dialog"><DialogHeader><div className="eyebrow">ABOUT THIS EXPERIMENT</div><DialogTitle>我们究竟在比较什么？</DialogTitle><DialogDescription>这是一组有明确原稿的改写对照，不是 AI 文本检测器。</DialogDescription></DialogHeader><div className="method-sections">
    <section><h3>01 / 四篇文章，三种改写幅度</h3><p>原稿为本次口述正文，保留措辞、标点及括号内的请求；仅去除文件首尾空白。低改写修句，中改写压缩，高改写重新组织开篇与论述重点。展示标题由 AI 添加，不参与正文统计。三份改写均由本次助手生成，切换时读取固定版本，不实时重新生成。</p><div className="version-table">{Object.entries(data.documents).map(([k,d])=><div key={k}><span>{levels[k as Level].label}</span><b>{d.chars} 字</b><span>{d.sentences.length} 个比较单元</span><a href={`/data/${k}.txt`} download>下载 <Download size={11}/></a></div>)}</div></section>
