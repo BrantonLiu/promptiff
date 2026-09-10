@@ -18,8 +18,7 @@ const features = [
     name: '审阅模式',
     unit: '字符级',
     title: '审阅模式',
-    description:
-      '在完整正文中标出删除、替换和新增的文字，结合上下文核对修改。',
+    description: '在完整正文中标出删除、替换和新增的文字，结合上下文核对修改。',
     steps: [
       '将原文与改写稿作为两串字符，用 SequenceMatcher（关闭 autojunk）寻找连续匹配。',
       '把未匹配部分分为删除、增加与替换，在原文旁展示完整修订稿。',
@@ -67,8 +66,7 @@ const features = [
     name: '按句语义比对模式',
     unit: '句子 / 长分句',
     title: '按句语义比对模式',
-    description:
-      '为每个改写句寻找意思最接近的原句，点击句子查看匹配结果。',
+    description: '为每个改写句寻找意思最接近的原句，点击句子查看匹配结果。',
     steps: [
       '使用 paraphrase-multilingual-MiniLM-L12-v2，经 mean pooling 和 L2 归一化，生成 384 维句向量。',
       '每个改写句与全部原文句计算余弦相似度，取最高值着色，并保留前三个匹配候选。',
@@ -104,6 +102,9 @@ export default async function Home({
           版本比对器<span className="beta">LAB</span>
         </Link>
         <nav aria-label="首页导航">
+          <Link className="landing-nav-link" href="/canvas">
+            Agent 画布
+          </Link>
           <a className="landing-nav-link" href="#features">
             四种比对方式
           </a>
@@ -134,7 +135,7 @@ export default async function Home({
             </a>
           </div>
           <p className="landing-availability">
-            无需登录 · 内置三种改写样本 · 暂不支持导入
+            无需登录 · 内置三种改写样本 · Agent 画布支持导入
           </p>
         </div>
         <figure className="landing-hero-figure">
@@ -271,9 +272,11 @@ export default async function Home({
           <p className="landing-kicker">试用内置样本</p>
           <h2>打开示例，检查具体改动。</h2>
           <p>
-            当前体验使用固定样本与预计算结果，暂不支持上传文章。
+            四种示例使用固定样本与预计算结果。比对自己的 prompt 与产出，请打开
+            Agent 画布。
             <br />
-            颜色表示相似程度，不是 AI 生成概率，不能判定作者归属或事实真伪，也不能断定原意未变。
+            颜色表示相似程度，不是 AI
+            生成概率，不能判定作者归属或事实真伪，也不能断定原意未变。
           </p>
         </div>
         <Link className="landing-button" href={startHref}>

@@ -103,7 +103,7 @@ node --experimental-strip-types --test supabase/tests/*.test.mjs
 
 ## 适合继续扩展的方向
 
-任意文章输入、在线 embedding 与个人历史记录尚未实现。扩展这些能力时，应明确正文存储位置、模型调用与费用、保存期限以及用户删除数据的路径。现有演示数据为静态预计算，Supabase 目前用于账号和反馈。
+`/canvas` 支持在浏览器内导入会话、粘贴文本并选择多轮 prompt；独立 CLI 支持本地模型与自有远程 embeddings API。参见 [Agent 画布](agent-canvas.md)。会话只保留于页面内存，CLI 读取显式指定的本地文件；云端历史存储、付费服务和托管报告尚未实现。原有四种演示数据仍为静态预计算，Supabase 用于账号和反馈。
 
 ## 本次并行开发分支
 

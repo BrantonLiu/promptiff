@@ -98,4 +98,4 @@ npm run build
 
 新增测试覆盖 Unicode 分句、双向覆盖、字符 diff 重建、非法数据、当前会话定位、重复日志、远程模式授权、向量校验、本地 API 防护及独立安装包。
 
-开发验证记录：26 项测试、TypeScript、lint 与完整 Vinext 构建通过。通过本地 HTTP embeddings 接口实际计算了 384 维向量，并在 `HF_HUB_OFFLINE=1` 下验证缓存推理。远程协议使用模拟服务验证请求范围和响应排序，尚未接入真实付费服务。此分支将 Wrangler compatibility_date 调整为现有锁定 runtime 支持的 2026-05-22，以使本地预览可启动。尚未进行浏览器交互/截图测试。
+开发验证记录：26 项测试、TypeScript、lint 与完整 Vinext 构建通过。通过本地 HTTP embeddings 接口实际计算了 384 维向量，并在 `HF_HUB_OFFLINE=1` 下验证缓存推理。远程协议使用模拟服务验证请求范围和响应排序，尚未接入真实付费服务。保留最新主分支的 Wrangler compatibility_date（2026-05-22），与锁定的本地 runtime 兼容。尚未进行浏览器交互/截图测试。
