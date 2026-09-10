@@ -4,7 +4,7 @@
 
 | 路径 | 职责 |
 | --- | --- |
-| `app/page.tsx`、`app/[view]/page.tsx` | 默认入口、四个深链接和版本参数 |
+| `app/page.tsx`、`app/[view]/page.tsx` | 首页、四个比对页面和版本参数 |
 | `app/layout.tsx` | 页面标题、分享元数据与全局字体 |
 | `app/globals.css` | 双栏排版、热力图、轻微圆角和响应式样式 |
 | `components/wordiff.tsx` | 比较界面、视图切换、原句定位与颜色羽化 |
@@ -14,6 +14,7 @@
 | `scripts/analyze.py` | 本地分句、jieba、diff 和 embedding 计算 |
 | `scripts/verify.py` | 比较数据完整性与一致性验证 |
 | `lib/analysis.json` | 应用实际使用的预计算结果 |
+| `public/previews/` | 四种视图的真实正文截图，裁去工具栏、展示标题、署名和日期 |
 | `public/data/` | 可下载的文章、汇总与同一份计算结果 |
 | `components/feedback-survey.tsx` | 三题问卷、提交、失败重试与会话去重 |
 | `app/auth/callback/` | Google 登录回到浏览器后的认证处理 |
@@ -61,7 +62,7 @@ python3 scripts/verify.py
 
 `diffuseHeat` 在相邻分数之间生成柔和的颜色过渡，点击详情仍读取原始分数。保留内联文本、`box-decoration-break: clone` 和零水平间距，避免每个词变成分隔的标签。
 
-正文热力块与审阅高亮使用 5px 圆角，常用控件约 6–8px，纸张和浮层约 10–12px。圆角以 CSS 像素指定；用户所说的轻微倒角按视觉效果落实，避免大幅胶囊化。保持选中与悬浮细边框能辨认，不要用粗边框覆盖羽化。
+正文热力块与审阅高亮使用 5px 圆角，常用控件约 6–8px，纸张和浮层约 10–12px。圆角以 CSS 像素指定，避免把控件改成大圆角的胶囊形。保持选中与悬浮细边框能辨认，不要用粗边框覆盖羽化。
 
 ## 反馈触发与数据
 

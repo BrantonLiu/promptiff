@@ -16,9 +16,9 @@ const geistMono = Geist_Mono({
 
 const baseMetadata: Metadata = {
   title: '版本比对器',
-  description: '用审阅、逐句 Diff、结巴分词与语义向量，对照一篇口述和三种 AI 改写。',
-  openGraph: { images: ['/og.png'], title: '版本比对器', description: '同一篇口述，三种改写程度，四种观察方式。' },
-  twitter: { images: ['/og.png'], card: 'summary_large_image', title: '版本比对器', description: '同一篇口述，三种改写程度，四种观察方式。' },
+  description: '核对原文与 AI 改写的增删改，支持审阅、类 Git Diff、切词和按句语义比对。当前提供内置样本演示。',
+  openGraph: { images: ['/og.png'], title: '版本比对器', description: '逐字核对增删改，也可按行、按词或按句比对 AI 改写。' },
+  twitter: { images: ['/og.png'], card: 'summary_large_image', title: '版本比对器', description: '逐字核对增删改，也可按行、按词或按句比对 AI 改写。' },
 };
 
 export async function generateMetadata(): Promise<Metadata> {
