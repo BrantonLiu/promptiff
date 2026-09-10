@@ -41,6 +41,8 @@ npx supabase db push
 
 在 Google Cloud 中配置 OAuth consent screen，再创建 **Web application** 类型的 OAuth 客户端。Google Client Secret 只填入 Supabase Google Provider 设置，不需要放入本项目的前端或 Worker 环境变量。若 Google 应用仍处于测试状态，把测试登录使用的 Google 账号加入测试用户；对外开放前检查应用发布状态和 Google 的相应要求。
 
+本仓库提供 `/privacy` 隐私说明页，可填入 Google Branding 的隐私政策地址。自行部署时请同步替换其中的实例域名与联系邮箱。
+
 网站回调路径是 `/auth/callback`。本地开发可添加 `http://localhost:3000/auth/callback`（端口以实际开发服务器为准）。为生产域名、需要登录的本地开发地址分别添加精确回调 URL；更换域名时同步修改 Supabase 的 Site URL、Redirect URLs 与 Worker 的 `SITE_URL`。
 
 ## 4. 设置环境变量
@@ -50,7 +52,7 @@ npx supabase db push
 | `SUPABASE_URL` | Supabase 项目 API origin | Worker 服务端环境 |
 | `SUPABASE_ANON_KEY` | Supabase 项目匿名 key，用于认证请求 | Worker 服务端环境 |
 | `SUPABASE_SERVICE_ROLE_KEY` | 写入反馈等服务端数据库操作 | **仅服务端 secret** |
-| `SITE_URL` | 本实例外部 origin，生成认证回调和页面分享地址 | Worker 服务端环境 |
+| `SITE_URL` | 本实例外部 origin，用于反馈来源校验及页面分享地址 | Worker 服务端环境 |
 
 从 Supabase 项目设置中复制对应值，不要把数据库密码误填为 API key，也不要把 service role key 填到匿名 key 字段。`/api/config` 仅向浏览器返回项目 URL 与匿名 key，这是浏览器 OAuth 所需的公开配置；数据库访问由 RLS 限制，service role key 不会由该接口返回。环境模板只提供占位符，不能直接使用。
 

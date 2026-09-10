@@ -1,5 +1,7 @@
 # 版本比对器
 
+[在线体验](https://wordiff.zliu2934.workers.dev) · [源码](https://github.com/BrantonLiu/wordiff)
+
 一份真实口述、三种 AI 改写、四种比较方式。这个实验帮助读者逐处检查措辞和语义如何变化；相似度不等于作者归属，也不是 AI 生成概率。
 
 - **审阅**：字符级增删改，支持隐藏删除内容。

@@ -40,3 +40,8 @@ next-env.d.ts
 .venv/
 __pycache__/
 *.tsbuildinfo
+
+# Local Worker secrets
+.dev.vars*
+!.dev.vars.example
+!.env.example

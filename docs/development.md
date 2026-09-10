@@ -80,8 +80,9 @@ python3 scripts/verify.py
 基础检查：
 
 ```sh
+npm test
 python3 scripts/verify.py
-npx tsc --noEmit
+npm run typecheck
 npm run lint
 npm run build
 ```
@@ -102,3 +103,16 @@ node --experimental-strip-types --test supabase/tests/*.test.mjs
 ## 适合继续扩展的方向
 
 任意文章输入、在线 embedding 与个人历史记录尚未实现。扩展这些能力时，应明确正文存储位置、模型调用与费用、保存期限以及用户删除数据的路径。现有演示数据为静态预计算，Supabase 目前用于账号和反馈。
+
+## 本次并行开发分支
+
+本次更新先用 `9cb0351` 单独保存已有的羽化与候选原句导航改动，再分出三个 worktree：
+
+| 分支 | 范围 |
+| --- | --- |
+| `work/auth-supabase` | Google PKCE 登录、Supabase 环境、反馈 API、迁移与隐私页 |
+| `work/feedback` | 前台计时、四视图门槛、三题问卷 |
+| `work/ui-docs` | 轻微圆角、页面标题、部署与开发文档 |
+| `work/integration` | 合并上述分支、Wrangler 云端接线、移动端适配与验收 |
+
+`main` 为验收后的发布版本；分支保留供审阅。本地 worktree 的路径不需要复制到新环境，普通 `git clone` 即可开发。
