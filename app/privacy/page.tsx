@@ -1,4 +1,4 @@
-import Link from 'next/link';
+/* oxlint-disable next/no-html-link-for-pages -- Native navigation avoids the reproduced vinext production Link crash. */
 import type { Metadata } from 'next';
 import type { CSSProperties } from 'react';
 
@@ -19,9 +19,9 @@ const linkStyle: CSSProperties = { color: 'var(--primary)', textDecoration: 'und
 export default function PrivacyPage() {
   return (
     <main style={{ maxWidth: 820, margin: '0 auto', padding: '32px 18px 64px' }}>
-      <Link href="/" style={{ ...linkStyle, display: 'inline-block', marginBottom: 24, fontSize: 14 }}>
+      <a href="/" style={{ ...linkStyle, display: 'inline-block', marginBottom: 24, fontSize: 14 }}>
         ← 返回版本比对器
-      </Link>
+      </a>
       <article style={{ background: 'var(--card, #fff)', border: '1px solid var(--border)', borderRadius: 12, padding: 'clamp(22px, 5vw, 44px)', fontSize: 15, lineHeight: 1.9 }}>
         <p style={{ margin: '0 0 12px', color: 'var(--muted-foreground)', fontSize: 12 }}>更新于 2026 年 9 月 10 日</p>
         <h1 style={{ fontSize: 28, marginBottom: 16 }}>隐私说明</h1>

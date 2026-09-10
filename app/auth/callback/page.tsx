@@ -1,7 +1,7 @@
+/* oxlint-disable next/no-html-link-for-pages -- Native navigation avoids the reproduced vinext production Link crash. */
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import Link from 'next/link';
 import { getSupabaseBrowserClient, safeReturnPath } from '@/lib/supabase-browser';
 
 export default function AuthCallback() {
@@ -28,6 +28,6 @@ export default function AuthCallback() {
   return <main className="auth-callback" style={{ maxWidth: 560, margin: '15vh auto', padding: 24 }}>
     <h1>版本比对器</h1>
     <p role={error ? 'alert' : 'status'}>{error ?? '正在完成 Google 登录…'}</p>
-    {error && <Link href="/">返回版本比对器</Link>}
+    {error && <a href="/">返回版本比对器</a>}
   </main>;
 }
