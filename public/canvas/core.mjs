@@ -133,14 +133,22 @@ export function compare(source, target, vectors = null) {
   }));
   return { rows, coverage, semantic: !!vectors };
 }
+const wordSegmenter = new Intl.Segmenter('zh-CN', { granularity: 'word' });
+export function words(text) {
+  return Array.from(wordSegmenter.segment(text), ({ segment }) => segment);
+}
+export function wordDiff(a, b) {
+  return sequenceDiff(words(a), words(b));
+}
 export function diff(a, b) {
-  // Bounded sentence-sized character LCS. Full documents are compared by rows.
-  const x = Array.from(a),
-    y = Array.from(b);
+  return sequenceDiff(Array.from(a), Array.from(b));
+}
+function sequenceDiff(x, y) {
+  // Bounded sentence-sized LCS. Full documents are compared by matched rows.
   if (x.length * y.length > 1000000)
     return [
-      { type: 'delete', text: a },
-      { type: 'insert', text: b },
+      { type: 'delete', text: x.join('') },
+      { type: 'insert', text: y.join('') },
     ];
   const grid = Array.from(
     { length: x.length + 1 },

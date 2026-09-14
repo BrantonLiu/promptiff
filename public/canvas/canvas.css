@@ -1035,3 +1035,31 @@ textarea {
     scroll-behavior: auto !important;
   }
 }
+
+/* Comparison modes share sentence matching; these views expose distinct units. */
+.diff-columns {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 16px;
+}
+.diff-columns > div {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.word-unit {
+  border-radius: 2px;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+.word-equal {
+  background: #dbe8f2;
+}
+.word-insert {
+  background: #f8e6af;
+}
+@media (max-width: 600px) {
+  .diff-columns {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+}

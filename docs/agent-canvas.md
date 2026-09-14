@@ -50,7 +50,7 @@ node cli/wordiff.mjs serve --session /absolute/path/session.json
 
 ### 字面比对
 
-无需安装依赖。以字符二元组 Dice 计算句间距离，按每句最近邻展示双向覆盖。逐句修订在字面最近句之间做字符 LCS，不声称因果归因。
+无需安装依赖。以字符二元组 Dice 计算句间距离，按每句最近邻展示双向覆盖。Git比对和逐字比对在字面最近句之间做字符 LCS，不声称因果归因。
 
 ### 本地语义
 

@@ -1,4 +1,11 @@
-import { sentences, validateSession, compare, diff } from './core.mjs';
+import {
+  sentences,
+  validateSession,
+  compare,
+  diff,
+  wordDiff,
+  words,
+} from './core.mjs';
 const $ = (selector) => document.querySelector(selector);
 import { demo, demoProvenance } from './demo.mjs';
 import { prepareDocument, renderDocument } from './document.mjs';
@@ -169,6 +176,43 @@ function heat(score) {
   const t = Math.max(0, Math.min(1, score));
   return `rgba(${Math.round(235 - 81 * t)},${Math.round(192 + 6 * t)},${Math.round(114 + 37 * t)},${(0.19 + Math.abs(t - 0.5) * 0.25).toFixed(2)})`;
 }
+// Wrap text nodes without discarding Markdown emphasis, links or code formatting.
+function decorateWords(node, reference) {
+  const parts = wordDiff(reference, node.textContent)
+    .filter((op) => op.type !== 'delete')
+    .flatMap((op) => words(op.text).map((text) => ({ text, type: op.type })));
+  const walker = document.createTreeWalker(node, NodeFilter.SHOW_TEXT);
+  const textNodes = [];
+  while (walker.nextNode()) textNodes.push(walker.currentNode);
+  let index = 0,
+    offset = 0;
+  for (const textNode of textNodes) {
+    const fragment = document.createDocumentFragment();
+    let consumed = 0;
+    while (consumed < textNode.textContent.length) {
+      const part = parts[index];
+      const length = Math.min(
+        part.text.length - offset,
+        textNode.textContent.length - consumed,
+      );
+      const mark = el(
+        'span',
+        textNode.textContent.slice(consumed, consumed + length),
+        `word-unit word-${part.type}`,
+      );
+      mark.title =
+        part.type === 'equal' ? '原位保留的词语' : '新增、替换或移位的词语';
+      fragment.append(mark);
+      consumed += length;
+      offset += length;
+      if (offset === part.text.length) {
+        index++;
+        offset = 0;
+      }
+    }
+    textNode.replaceWith(fragment);
+  }
+}
 function toggleDetails(open, focus = false) {
   $('#details').hidden = !open;
   $('#toggle-details').setAttribute('aria-expanded', String(open));
@@ -222,7 +266,17 @@ function render() {
     `${selected.size} 轮 prompt · ${target.length} 句产出`;
   $('#summary').replaceChildren();
   $('#only-gaps').disabled = mode === 'preview';
-  $('#legend').hidden = mode === 'preview' || mode === 'diff';
+  $('#legend').hidden =
+    mode === 'preview' || mode === 'diff' || mode === 'review';
+  $('#legend').replaceChildren(
+    ...(mode === 'lexical'
+      ? [
+          el('span', '原位保留', 'word-equal'),
+          ' · ',
+          el('span', '新增 / 替换 / 移位', 'word-insert'),
+        ]
+      : ['低匹配 ', el('b', undefined, 'gradient'), ' 高匹配']),
+  );
   if (result && mode !== 'preview') {
     const mean =
       result.rows.reduce(
@@ -258,23 +312,43 @@ function render() {
     renderDocument(output, prepared);
   else if (!result)
     output.append(el('p', '选择至少一轮 prompt 开始比对。', 'empty'));
-  else if (mode === 'diff') {
+  else if (mode === 'diff' || mode === 'review') {
     for (const row of result.rows) {
       if (onlyGaps && row.candidates[0].score >= threshold) continue;
       const section = el('div', undefined, 'diff-row'),
         ref = source[row.candidates[0].index];
       section.append(el('small', `${ref.label} → 产出 ${row.index + 1}`));
-      for (const op of diff(ref.text, row.text))
-        section.append(
-          el(
-            op.type === 'delete'
-              ? 'del'
-              : op.type === 'insert'
-                ? 'ins'
-                : 'span',
-            op.text,
-          ),
-        );
+      const ops = diff(ref.text, row.text);
+      if (mode === 'diff') {
+        const columns = el('div', undefined, 'diff-columns');
+        for (const side of ['old', 'new']) {
+          const column = el('div', undefined, `diff-${side}`);
+          column.append(el('small', side === 'old' ? '− Prompt' : '+ 产出'));
+          for (const op of ops) {
+            if (op.type === (side === 'old' ? 'insert' : 'delete')) continue;
+            column.append(
+              el(
+                op.type === 'equal' ? 'span' : side === 'old' ? 'del' : 'ins',
+                op.text,
+              ),
+            );
+          }
+          columns.append(column);
+        }
+        section.append(columns);
+      } else {
+        for (const op of ops)
+          section.append(
+            el(
+              op.type === 'delete'
+                ? 'del'
+                : op.type === 'insert'
+                  ? 'ins'
+                  : 'span',
+              op.text,
+            ),
+          );
+      }
       output.append(section);
     }
     if (!output.children.length)
@@ -287,7 +361,9 @@ function render() {
       node.setAttribute('role', 'button');
       node.tabIndex = 0;
       node.hidden = onlyGaps && row.candidates[0].score >= threshold;
-      node.style.backgroundColor = heat(row.candidates[0].score);
+      if (mode === 'lexical')
+        decorateWords(node, source[row.candidates[0].index].text);
+      else node.style.backgroundColor = heat(row.candidates[0].score);
       node.title = `${result.semantic ? '语义' : '字面'}相似度 ${scoreText(row.candidates[0].score)}`;
       function activate() {
         active = row.index;

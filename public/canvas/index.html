@@ -49,11 +49,12 @@
         </div>
         <div class="toolbar">
           <div class="modes" role="group" aria-label="比对模式">
-            <button data-mode="semantic" aria-pressed="true">句子语义</button
-            ><button data-mode="lexical" aria-pressed="false">字面距离</button
-            ><button data-mode="diff" aria-pressed="false">逐句修订</button
-            ><button data-mode="preview" aria-pressed="false">原文预览</button>
+            <button data-mode="semantic" aria-pressed="true">语义比对</button
+            ><button data-mode="lexical" aria-pressed="false">逐词比对</button
+            ><button data-mode="diff" aria-pressed="false">Git比对</button
+            ><button data-mode="review" aria-pressed="false">逐字比对</button>
           </div>
+          <button data-mode="preview" aria-pressed="false">原文预览</button>
           <button
             id="engine-status"
             class="engine-status"
@@ -167,7 +168,7 @@
             分数衡量句子表达的接近程度，不是需求完成率。否定、数字和条件变化需要结合原文判断。低匹配要求表示当前产出没有与其足够接近的句子。
           </p>
           <p>
-            文档标题与表头保留排版，不计入句子得分。字面距离和逐句修订按字面最近句配对。
+            文档标题与表头保留排版，不计入句子得分。逐词比对、Git比对和逐字比对按字面最近句配对；Git比对左右展示增删，逐字比对在同一行标出字符变化。逐词比对使用浏览器内置分词，蓝色表示原位保留，黄色表示新增、替换或移位，不表示词义相似度。
           </p>
         </details>
       </section>

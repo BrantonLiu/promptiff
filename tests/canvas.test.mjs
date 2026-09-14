@@ -8,6 +8,8 @@ import {
   compare,
   validateSession,
   diff,
+  wordDiff,
+  words,
 } from '../public/canvas/core.mjs';
 import { parseCodex, findCurrentSession } from '../cli/session.mjs';
 import { embeddings, remoteConfig, validateVectors } from '../cli/engine.mjs';
@@ -283,5 +285,37 @@ test('remote embeddings sends only selected texts and restores vector index orde
     );
   } finally {
     globalThis.fetch = original;
+  }
+});
+
+test('word diff preserves whole-word changes and reconstructs multilingual input', () => {
+  assert.deepEqual(wordDiff('cats', 'cars'), [
+    { type: 'delete', text: 'cats' },
+    { type: 'insert', text: 'cars' },
+  ]);
+  for (const [a, b] of [
+    ['本地保存。', '云端保存。'],
+    ['keep **local**  files\n😀', 'keep **remote** files\n🚀'],
+    ['', 'new'],
+    ['gone', ''],
+    ['same', 'same'],
+  ]) {
+    assert.equal(words(a).join(''), a);
+    assert.equal(words(b).join(''), b);
+    const ops = wordDiff(a, b);
+    assert.equal(
+      ops
+        .filter((op) => op.type !== 'insert')
+        .map((op) => op.text)
+        .join(''),
+      a,
+    );
+    assert.equal(
+      ops
+        .filter((op) => op.type !== 'delete')
+        .map((op) => op.text)
+        .join(''),
+      b,
+    );
   }
 });
