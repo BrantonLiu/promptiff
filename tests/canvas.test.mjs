@@ -13,7 +13,7 @@ import {
 } from '../public/canvas/core.mjs';
 import { parseCodex, findCurrentSession } from '../cli/session.mjs';
 import { embeddings, remoteConfig, validateVectors } from '../cli/engine.mjs';
-import { startServer, installSkill } from '../cli/wordiff.mjs';
+import { startServer, installSkill } from '../cli/promptiff.mjs';
 const session = {
   version: 1,
   title: 'Test',
@@ -124,7 +124,7 @@ test('Codex capture ignores tool/system messages and duplicate events', () => {
   assert.ok(!JSON.stringify(result).includes('SECRET'));
 });
 test('current-session lookup does not fall back to another task', async () => {
-  const dir = await mkdtemp(join(tmpdir(), 'wordiff-lookup-'));
+  const dir = await mkdtemp(join(tmpdir(), 'promptiff-lookup-'));
   try {
     await writeFile(join(dir, 'rollout-12345678.jsonl'), '{}');
     assert.equal(
@@ -139,13 +139,13 @@ test('current-session lookup does not fall back to another task', async () => {
 });
 test('remote mode requires opt-in and valid credentials; malformed vectors fail', () => {
   const env = {
-    WORDIFF_API_URL: 'https://example.com/v1/embeddings',
-    WORDIFF_API_KEY: 'secret',
-    WORDIFF_MODEL: 'test',
+    PROMPTIFF_API_URL: 'https://example.com/v1/embeddings',
+    PROMPTIFF_API_KEY: 'secret',
+    PROMPTIFF_MODEL: 'test',
   };
   assert.throws(() => remoteConfig(env, false));
   assert.throws(() =>
-    remoteConfig({ ...env, WORDIFF_API_URL: 'http://example.com' }, true),
+    remoteConfig({ ...env, PROMPTIFF_API_URL: 'http://example.com' }, true),
   );
   assert.equal(remoteConfig(env, true).model, 'test');
   for (const value of [[[0, 0]], [[1, NaN]], [[1, 2], [1]], []])
@@ -206,12 +206,12 @@ test('loopback server protects session and model endpoints; serves inert canvas'
   }
 });
 test('skill installer bundles runtime and refuses overwriting an existing skill', async () => {
-  const dir = await mkdtemp(join(tmpdir(), 'wordiff-install-'));
+  const dir = await mkdtemp(join(tmpdir(), 'promptiff-install-'));
   try {
     const dest = await installSkill(dir);
     assert.match(
       await readFile(join(dest, 'SKILL.md'), 'utf8'),
-      /wordiff-canvas/,
+      /promptiff-canvas/,
     );
     assert.match(
       await readFile(join(dest, 'runtime/public/canvas/core.mjs'), 'utf8'),

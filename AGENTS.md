@@ -1,6 +1,6 @@
 # 仓库边界
 
-本仓库公开维护 CLI、Skill、静态画布、示例、测试和用户文档。网站、登录反馈后端和生产配置在独立 private 的 wordiff-web 仓库维护。不要在这里加入 Worker/Supabase 配置、生产项目标识、真实会话或密钥。
+本仓库公开维护 CLI、Skill、静态画布、示例、测试和用户文档。网站、登录反馈后端和生产配置在独立 private 的 promptiff-web 仓库维护。不要在这里加入 Worker/Supabase 配置、生产项目标识、真实会话或密钥。
 
 # 开发验证
 

@@ -551,7 +551,7 @@ $('#export').addEventListener('click', () => {
   );
   const link = el('a');
   link.href = url;
-  link.download = 'wordiff-session.json';
+  link.download = 'promptiff-session.json';
   link.click();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 });
@@ -591,7 +591,7 @@ function installPrompt() {
   const kind = $('#install-type').value,
     engine = $('#compute').value;
   $('#install-prompt').value =
-    `请给我安装 Wordiff ${kind === 'skill' ? 'Skill 和本地 CLI' : '本地 CLI'}，用于比对当前会话中的原始 prompt 与 AI 产出。\n仓库：https://github.com/BrantonLiu/wordiff\n先读取仓库 docs/agent-canvas.md 并确认包含 cli/wordiff.mjs；使用仓库 main 或用户提供的本地 checkout；如果缺少安装文件，请报告版本不符。把仓库放到我本地专用工具目录，保留已有文件。${kind === 'skill' ? '运行 node cli/wordiff.mjs install --target <此 Agent 的技能目录>；Codex 可使用 ~/.agents/skills。' : ''}\n只使用当前会话可见的用户 prompt 和我指定的 AI 产出，保留原文、轮次与出处；不要搜索其他对话，也不要包含系统提示、密钥或工具日志。Codex 可运行 capture --current；若不可用，由你按文档导出 session.json。\n计算方式：${engine === 'local' ? '本地语义。创建独立 Python 环境并安装 cli/requirements.txt，首次下载模型后在本地推理。' : engine === 'remote' ? '远程语义。请先向我获取 API 服务地址、模型名及上传许可；密钥通过环境变量配置，不写入会话文件。' : '本地字面比对，不安装模型。'}\n运行 node cli/wordiff.mjs serve --session <session.json> --engine ${engine}${engine === 'local' ? ' --python <虚拟环境中的python>' : ''}${engine === 'remote' ? ' --allow-remote' : ''}，保持服务进程存活，将返回的完整本地链接在 Agent 侧边浏览器或系统浏览器打开。告诉我哪些内容已采集、哪些因会话权限不可见。`;
+    `请给我安装 Promptiff ${kind === 'skill' ? 'Skill 和本地 CLI' : '本地 CLI'}，用于比对当前会话中的原始 prompt 与 AI 产出。\n仓库：https://github.com/BrantonLiu/promptiff\n先读取仓库 docs/agent-canvas.md 并确认包含 cli/promptiff.mjs；使用仓库 main 或用户提供的本地 checkout；如果缺少安装文件，请报告版本不符。把仓库放到我本地专用工具目录，保留已有文件。${kind === 'skill' ? '运行 node cli/promptiff.mjs install --target <此 Agent 的技能目录>；Codex 可使用 ~/.agents/skills。' : ''}\n只使用当前会话可见的用户 prompt 和我指定的 AI 产出，保留原文、轮次与出处；不要搜索其他对话，也不要包含系统提示、密钥或工具日志。Codex 可运行 capture --current；若不可用，由你按文档导出 session.json。\n计算方式：${engine === 'local' ? '本地语义。创建独立 Python 环境并安装 cli/requirements.txt，首次下载模型后在本地推理。' : engine === 'remote' ? '远程语义。请先向我获取 API 服务地址、模型名及上传许可；密钥通过环境变量配置，不写入会话文件。' : '本地字面比对，不安装模型。'}\n运行 node cli/promptiff.mjs serve --session <session.json> --engine ${engine}${engine === 'local' ? ' --python <虚拟环境中的python>' : ''}${engine === 'remote' ? ' --allow-remote' : ''}，保持服务进程存活，将返回的完整本地链接在 Agent 侧边浏览器或系统浏览器打开。告诉我哪些内容已采集、哪些因会话权限不可见。`;
 }
 function settingsTab(name) {
   for (const tab of document.querySelectorAll('[data-settings]')) {

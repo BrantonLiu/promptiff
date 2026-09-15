@@ -1,4 +1,4 @@
-# Wordiff · Agent 比对画布
+# Promptiff · Agent 比对画布
 
 把一轮或多轮用户 prompt 与选定的 AI 产出并排阅读，检查变化、遗漏和新增内容。支持语义比对、逐词比对、Git比对、逐字比对，以及独立的原文预览，以及 Markdown、纯文本、JSON、CSV、HTML 源码和代码。
 
@@ -9,9 +9,9 @@
 需要 Node.js 22.13+，基础功能无需安装 npm 依赖：
 
 ```sh
-git clone https://github.com/BrantonLiu/wordiff.git
-cd wordiff
-node cli/wordiff.mjs serve --session examples/session.json
+git clone https://github.com/BrantonLiu/promptiff.git
+cd promptiff
+node cli/promptiff.mjs serve --session examples/session.json
 ```
 
 打开终端输出的完整本地链接。服务只监听 127.0.0.1；保持进程运行，按 Ctrl-C 关闭。在设置里可以导入会话 JSON，或粘贴自己的 prompt 和产出。
@@ -19,9 +19,9 @@ node cli/wordiff.mjs serve --session examples/session.json
 ## 在 Agent 中使用
 
 ```sh
-node cli/wordiff.mjs install --target ~/.agents/skills
-node cli/wordiff.mjs capture --current --out /absolute/private/path/session.json
-node cli/wordiff.mjs serve --session /absolute/private/path/session.json
+node cli/promptiff.mjs install --target ~/.agents/skills
+node cli/promptiff.mjs capture --current --out /absolute/private/path/session.json
+node cli/promptiff.mjs serve --session /absolute/private/path/session.json
 ```
 
 安装器不覆盖已有 Skill。capture 仅在当前 Codex 任务环境中采集该任务；也支持手工准备 JSON。[Agent 接入说明](docs/agent-canvas.md)提供可复制给 Agent 的指令、数据格式和模型配置。当前交付 Skill 与 CLI，尚未上架公共插件市场。
