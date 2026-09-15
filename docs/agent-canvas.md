@@ -76,7 +76,7 @@ node cli/promptiff.mjs serve --session /absolute/path/session.json --engine remo
 
 选择该模式后，浏览器提示远程服务域名；服务只发送当前筛选的 prompt / 产出句子，不发送 Skill、其他会话或系统指令。HTTP 请求为 `POST`，Bearer 认证，请求体 `{model, input: string[], encoding_format: "float"}`，响应为 `{data: [{index, embedding: number[]}]}`。拒绝 HTTP、重定向、索引缺失、零向量和维度不一致。前端仍在本地计算余弦、覆盖和显示。
 
-这提供了将来平台算力服务可实现的兼容接口。目前没有 Promptiff 付费、注册、API key 发放、计费或远程报告托管服务，也不把已有 Google 登录当作付费授权。将来如需远程链接，需额外实现有访问控制、生命周期和删除能力的报告存储；本版不会伪造分享地址。
+这提供了将来平台算力服务可实现的兼容接口。本地 CLI 不提供注册、API key 发放、余额扣费或远程报告托管；独立网站的登录与计费功能不属于此 CLI 接口，也不能把 Google 登录当作远程上传许可。将来如需远程链接，需额外实现有访问控制、生命周期和删除能力的报告存储；本版不会伪造分享地址。
 
 ## 如何读结果
 

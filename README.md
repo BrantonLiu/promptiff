@@ -4,6 +4,8 @@
 
 本仓库提供独立的本地 CLI、画布和 Skill。自营网站、登录、反馈数据库及生产部署配置在独立仓库维护。
 
+更名与已有安装的更新步骤见[切换到 Promptiff](docs/rename-promptiff.md)。
+
 ## 快速体验
 
 需要 Node.js 22.13+，基础功能无需安装 npm 依赖：
