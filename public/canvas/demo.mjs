@@ -4,7 +4,7 @@ import { validateSession } from './core.mjs';
 // deliberate demonstration rewrites, not transcripts of delivered features.
 export const demo = validateSession({
   version: 1,
-  title: 'Wordiff · Agent 比对画布',
+  title: 'Promptiff · Agent 比对画布',
   turns: [
     {
       id: 't1',
@@ -23,7 +23,7 @@ export const demo = validateSession({
       title: '初版 · 功能方案.md',
       turnId: 't1',
       format: 'markdown',
-      text: `# Wordiff：Agent 比对画布
+      text: `# Promptiff：Agent 比对画布
 
 将原有文本比对页扩展为一个可以缩放、移动的画布。用户选择一段对话，再将需求和 AI 方案并排放置，查看两者之间的对应关系。
 
@@ -48,7 +48,7 @@ export const demo = validateSession({
       title: '迭代版 · 实施方案.md',
       turnId: 't2',
       format: 'markdown',
-      text: `# Wordiff：从需求到方案
+      text: `# Promptiff：从需求到方案
 
 把文本比对放进可缩放、可移动的画布。用户从一段对话出发，选择要核对的 prompt，再阅读 AI 产出，逐句检查表达是否偏离原意。
 

@@ -19,20 +19,20 @@ import { loadSession, parseCodex, findCurrentSession } from './session.mjs';
 import { embeddings, remoteConfig } from './engine.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const help = `Wordiff — Agent 比对画布 (Node >=22.13)
+const help = `Promptiff — Agent 比对画布 (Node >=22.13)
 
-  node cli/wordiff.mjs install [--target ~/.agents/skills]
-  node cli/wordiff.mjs capture --current --out session.json
-  node cli/wordiff.mjs capture --codex-session /path/rollout.jsonl --out session.json
-  node cli/wordiff.mjs serve --session session.json [--session other.json]
+  node cli/promptiff.mjs install [--target ~/.agents/skills]
+  node cli/promptiff.mjs capture --current --out session.json
+  node cli/promptiff.mjs capture --codex-session /path/rollout.jsonl --out session.json
+  node cli/promptiff.mjs serve --session session.json [--session other.json]
        [--engine lexical|local|remote] [--python /path/python] [--port 0]
        [--allow-remote]
 
 默认 lexical：无需依赖、不发送文本。local 需先安装 cli/requirements.txt。
-remote 需 WORDIFF_API_URL（完整 HTTPS embeddings URL）、WORDIFF_API_KEY、WORDIFF_MODEL。
+remote 需 PROMPTIFF_API_URL（完整 HTTPS embeddings URL）、PROMPTIFF_API_KEY、PROMPTIFF_MODEL。
 服务仅绑定 127.0.0.1。Ctrl-C 关闭；浏览器导入不写磁盘。\n`;
 export async function installSkill(target) {
-  const destination = join(resolve(target), 'wordiff-canvas');
+  const destination = join(resolve(target), 'promptiff-canvas');
   try {
     await stat(destination);
     throw new Error(`目标已存在，未覆盖：${destination}`);
@@ -42,7 +42,7 @@ export async function installSkill(target) {
   await mkdir(dirname(destination), { recursive: true });
   const staging = `${destination}.tmp-${randomBytes(5).toString('hex')}`;
   try {
-    await cp(join(root, 'skills/wordiff-canvas'), staging, { recursive: true });
+    await cp(join(root, 'skills/promptiff-canvas'), staging, { recursive: true });
     await mkdir(join(staging, 'runtime/public'), { recursive: true });
     await cp(join(root, 'cli'), join(staging, 'runtime/cli'), {
       recursive: true,
@@ -285,7 +285,7 @@ async function main() {
     port,
   });
   process.stdout.write(
-    `Wordiff 画布已就绪：${url}\n计算：${engine}${remote ? `（发送所选文本至 ${new URL(remote.url).host}）` : '（文本保留本地）'}\n保持此进程运行。Ctrl-C 关闭。\n`,
+    `Promptiff 画布已就绪：${url}\n计算：${engine}${remote ? `（发送所选文本至 ${new URL(remote.url).host}）` : '（文本保留本地）'}\n保持此进程运行。Ctrl-C 关闭。\n`,
   );
   for (const signal of ['SIGINT', 'SIGTERM'])
     process.once(signal, () => server.close(() => process.exit(0)));
@@ -295,6 +295,6 @@ if (
   realpathSync(process.argv[1]) === fileURLToPath(import.meta.url)
 )
   main().catch((error) => {
-    process.stderr.write(`Wordiff: ${error.message}\n`);
+    process.stderr.write(`Promptiff: ${error.message}\n`);
     process.exitCode = 1;
   });

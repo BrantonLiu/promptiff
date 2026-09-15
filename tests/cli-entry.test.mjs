@@ -7,10 +7,10 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 test('CLI invoked through a symlink runs help and captures a selected session', async () => {
-  const dir = await mkdtemp(join(tmpdir(), 'wordiff-cli-entry-'));
+  const dir = await mkdtemp(join(tmpdir(), 'promptiff-cli-entry-'));
   try {
-    const cli = join(dir, 'wordiff.mjs');
-    await symlink(fileURLToPath(new URL('../cli/wordiff.mjs', import.meta.url)), cli);
+    const cli = join(dir, 'promptiff.mjs');
+    await symlink(fileURLToPath(new URL('../cli/promptiff.mjs', import.meta.url)), cli);
     assert.match(execFileSync(process.execPath, [cli, '--help'], { encoding: 'utf8' }), /capture --current/);
     const input = join(dir, 'rollout.jsonl');
     const output = join(dir, 'session.json');

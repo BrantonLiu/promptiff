@@ -6,20 +6,20 @@
 
 网站右上角「设置 → Agent 接入」按 Skill / CLI 和计算方式生成指令。可直接复制下面这段：
 
-> 请安装 Wordiff 本地比对工具。读取 https://github.com/BrantonLiu/wordiff 中 docs/agent-canvas.md；使用仓库 main 或已提供的本地 checkout，先确认包含 `cli/wordiff.mjs`。将项目放在专用工具目录，不覆盖已有文件。使用 Node 22.13+，运行 `node cli/wordiff.mjs install --target <你的技能目录>`（Codex 通常为 `~/.agents/skills`）。只采集当前任务可见的用户原始 prompt 和我选择的 AI 产出，保留轮次，不带系统指令、工具日志、凭证或其他对话。Codex 用 `capture --current --out <新的 session.json 路径>`；不支持当前任务日志时从可见上下文导出文档里的 JSON，不能猜测缺失的原文。运行 `serve --session <文件> --engine lexical`，保持进程存活，在侧边浏览器或普通浏览器打开返回的完整链接。若我要真实语义比对，使用本文档的本地模型方式；只有我选择远程并允许上传时才使用远程方式。
+> 请安装 Promptiff 本地比对工具。读取 https://github.com/BrantonLiu/promptiff 中 docs/agent-canvas.md；使用仓库 main 或已提供的本地 checkout，先确认包含 `cli/promptiff.mjs`。将项目放在专用工具目录，不覆盖已有文件。使用 Node 22.13+，运行 `node cli/promptiff.mjs install --target <你的技能目录>`（Codex 通常为 `~/.agents/skills`）。只采集当前任务可见的用户原始 prompt 和我选择的 AI 产出，保留轮次，不带系统指令、工具日志、凭证或其他对话。Codex 用 `capture --current --out <新的 session.json 路径>`；不支持当前任务日志时从可见上下文导出文档里的 JSON，不能猜测缺失的原文。运行 `serve --session <文件> --engine lexical`，保持进程存活，在侧边浏览器或普通浏览器打开返回的完整链接。若我要真实语义比对，使用本文档的本地模型方式；只有我选择远程并允许上传时才使用远程方式。
 
 这段指令不依赖某款 Agent 能执行任意隐藏 API。Skill 是可被 Agent 发现的使用说明，CLI 执行确定性采集和本地服务；网页本身不能读取 Agent 会话。DSH 未确认具体产品及会话接口，暂使用通用 JSON 导出路径。
 
 ## 本地安装与运行
 
 ```sh
-# 在已下载的 Wordiff checkout 中运行；基础 CLI 无需 npm install。
-node cli/wordiff.mjs install --target ~/.agents/skills
-node cli/wordiff.mjs capture --current --out /absolute/path/session.json
-node cli/wordiff.mjs serve --session /absolute/path/session.json
+# 在已下载的 Promptiff checkout 中运行；基础 CLI 无需 npm install。
+node cli/promptiff.mjs install --target ~/.agents/skills
+node cli/promptiff.mjs capture --current --out /absolute/path/session.json
+node cli/promptiff.mjs serve --session /absolute/path/session.json
 ```
 
-安装器打包 Skill、CLI 和同一份静态画布到 `wordiff-canvas/runtime`，安装后不依赖原仓库位置。安装器拒绝覆盖已有技能；更新前先自行移走或备份旧版。只用 CLI 的用户跳过 `install`，直接执行 `serve`。使用 `node cli/wordiff.mjs --help` 查看参数。
+安装器打包 Skill、CLI 和同一份静态画布到 `promptiff-canvas/runtime`，安装后不依赖原仓库位置。安装器拒绝覆盖已有技能；更新前先自行移走或备份旧版。只用 CLI 的用户跳过 `install`，直接执行 `serve`。使用 `node cli/promptiff.mjs --help` 查看参数。
 
 默认随机空闲端口，只监听 `127.0.0.1`。CLI 输出带 fragment 令牌的完整 URL，令牌不传到远程网页；本地 JSON / 模型接口需要 Bearer 令牌，并检查 Host、Origin，阻止跨站读取。服务不会读取任意文件路径，也不会将 API key 发到浏览器。退出服务后原链接失效。原始 JSON 使用权限 0600 新建，不覆盖同名文件。
 
@@ -57,7 +57,7 @@ node cli/wordiff.mjs serve --session /absolute/path/session.json
 ```sh
 python3 -m venv .venv
 .venv/bin/pip install -r cli/requirements.txt
-node cli/wordiff.mjs serve --session /absolute/path/session.json --engine local --python .venv/bin/python
+node cli/promptiff.mjs serve --session /absolute/path/session.json --engine local --python .venv/bin/python
 ```
 
 首次计算下载 `sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2`，固定 revision `e8f8c211226b894fcb81acc59f3b34ba3efd5f42`，与原站方法一致。之后使用本地缓存，在 CPU 上推理，不将文本发送到推理服务。需要自行提供可用 Python 环境、模型磁盘空间与内存。每次新的选择启动一次 Python 模型进程；同一选择在页面内缓存，持续工作进程优化尚未实现。超过 tokenizer 限制时明确报错，不静默截断。
@@ -66,17 +66,17 @@ node cli/wordiff.mjs serve --session /absolute/path/session.json --engine local 
 
 在本地进程环境设置：
 
-- `WORDIFF_API_URL`：完整的 HTTPS embeddings 端点。
-- `WORDIFF_API_KEY`：服务密钥，勿写进 Git、会话 JSON 或浏览器。
-- `WORDIFF_MODEL`：该服务支持的 embedding 模型名。
+- `PROMPTIFF_API_URL`：完整的 HTTPS embeddings 端点。
+- `PROMPTIFF_API_KEY`：服务密钥，勿写进 Git、会话 JSON 或浏览器。
+- `PROMPTIFF_MODEL`：该服务支持的 embedding 模型名。
 
 ```sh
-node cli/wordiff.mjs serve --session /absolute/path/session.json --engine remote --allow-remote
+node cli/promptiff.mjs serve --session /absolute/path/session.json --engine remote --allow-remote
 ```
 
 选择该模式后，浏览器提示远程服务域名；服务只发送当前筛选的 prompt / 产出句子，不发送 Skill、其他会话或系统指令。HTTP 请求为 `POST`，Bearer 认证，请求体 `{model, input: string[], encoding_format: "float"}`，响应为 `{data: [{index, embedding: number[]}]}`。拒绝 HTTP、重定向、索引缺失、零向量和维度不一致。前端仍在本地计算余弦、覆盖和显示。
 
-这提供了将来平台算力服务可实现的兼容接口。目前没有 Wordiff 付费、注册、API key 发放、计费或远程报告托管服务，也不把已有 Google 登录当作付费授权。将来如需远程链接，需额外实现有访问控制、生命周期和删除能力的报告存储；本版不会伪造分享地址。
+这提供了将来平台算力服务可实现的兼容接口。本地 CLI 不提供注册、API key 发放、余额扣费或远程报告托管；独立网站的登录与计费功能不属于此 CLI 接口，也不能把 Google 登录当作远程上传许可。将来如需远程链接，需额外实现有访问控制、生命周期和删除能力的报告存储；本版不会伪造分享地址。
 
 ## 如何读结果
 

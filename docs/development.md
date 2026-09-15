@@ -2,11 +2,11 @@
 
 | 路径 | 用途 |
 | --- | --- |
-| cli/wordiff.mjs | CLI、Skill 安装器、loopback 服务 |
+| cli/promptiff.mjs | CLI、Skill 安装器、loopback 服务 |
 | cli/session.mjs | 当前任务日志适配与 JSON 读取 |
 | cli/engine.mjs、embeddings.py | 本地与自有远程句向量 |
 | public/canvas/ | 静态画布、算法、Markdown 渲染和演示 |
-| skills/wordiff-canvas/ | Agent 操作说明 |
+| skills/promptiff-canvas/ | Agent 操作说明 |
 | examples/session.json | 独立体验样本 |
 | tests/ | 算法、渲染、API 和安装器测试 |
 | scripts/build-canvas-demo.mjs | 重算演示向量 |
@@ -14,7 +14,7 @@
 Node.js 22.13+。无需安装依赖即可运行：
 
 ```sh
-node cli/wordiff.mjs serve --session examples/session.json
+node cli/promptiff.mjs serve --session examples/session.json
 ```
 
 开发检查：

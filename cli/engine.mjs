@@ -31,9 +31,9 @@ export function remoteConfig(env, allowRemote) {
     throw new Error(
       '远程模式需要 --allow-remote，明确允许发送所选 prompt 与产出。',
     );
-  if (!env.WORDIFF_API_URL || !env.WORDIFF_API_KEY || !env.WORDIFF_MODEL)
-    throw new Error('请配置 WORDIFF_API_URL、WORDIFF_API_KEY、WORDIFF_MODEL。');
-  const url = new URL(env.WORDIFF_API_URL);
+  if (!env.PROMPTIFF_API_URL || !env.PROMPTIFF_API_KEY || !env.PROMPTIFF_MODEL)
+    throw new Error('请配置 PROMPTIFF_API_URL、PROMPTIFF_API_KEY、PROMPTIFF_MODEL。');
+  const url = new URL(env.PROMPTIFF_API_URL);
   if (
     url.protocol !== 'https:' ||
     url.username ||
@@ -44,7 +44,7 @@ export function remoteConfig(env, allowRemote) {
     throw new Error(
       '远程 API 必须是无用户名、密码或查询参数的 HTTPS embeddings 地址。',
     );
-  return { url: url.href, key: env.WORDIFF_API_KEY, model: env.WORDIFF_MODEL };
+  return { url: url.href, key: env.PROMPTIFF_API_KEY, model: env.PROMPTIFF_MODEL };
 }
 export async function embeddings(
   texts,

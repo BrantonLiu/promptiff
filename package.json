@@ -1,6 +1,6 @@
 {
-  "name": "wordiff",
-  "version": "0.2.0",
+  "name": "promptiff",
+  "version": "0.3.0",
   "private": true,
   "description": "Local prompt and AI output comparison canvas, CLI and Agent skill",
   "license": "MIT",
@@ -10,7 +10,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/BrantonLiu/wordiff.git"
+    "url": "https://github.com/BrantonLiu/promptiff.git"
   },
   "files": [
     "cli/",
@@ -20,11 +20,12 @@
     "docs/agent-canvas.md",
     "docs/development.md",
     "docs/methodology.md",
-    "scripts/build-canvas-demo.mjs"
+    "scripts/build-canvas-demo.mjs",
+    "docs/rename-promptiff.md"
   ],
   "scripts": {
-    "canvas": "node cli/wordiff.mjs",
-    "dev": "node cli/wordiff.mjs serve --session examples/session.json",
+    "canvas": "node cli/promptiff.mjs",
+    "dev": "node cli/promptiff.mjs serve --session examples/session.json",
     "test": "node --test tests/*.test.mjs",
     "lint": "oxlint cli public/canvas scripts tests",
     "format": "oxfmt"
