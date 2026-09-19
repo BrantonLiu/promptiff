@@ -1,6 +1,6 @@
 ---
 name: promptiff-canvas
-description: Compare user prompts from one or more conversation turns against a chosen AI text artifact in a local Promptiff canvas. Use when the user wants to inspect semantic distance, changed wording, or omitted requirements in Agent outputs.
+description: Compare user prompts against an AI document and return a local comparison link. Use for explicit comparisons or before delivering a document when the user has enabled automatic Promptiff checks in the current task or project rules.
 ---
 
 # Promptiff canvas
@@ -10,6 +10,10 @@ Use the current conversation's user prompts verbatim and the user's chosen AI ar
 The installed skill contains a standalone CLI and canvas in `runtime/`. Run commands relative to this skill's absolute directory. If working from the source repository instead of an installed copy, use the repository's `cli/promptiff.mjs` (the installer creates `runtime/`). Requires Node 22.13 or later; the basic CLI needs no npm dependencies.
 
 ## Capture
+
+When the user has enabled automatic document checks, apply this workflow to each new or revised document in that scope, not to progress updates or casual replies. Installing the skill alone does not enable a universal hook or grant access to all sessions. Across tasks, follow an explicit project rule if present; do not modify global Agent configuration to create one.
+
+Before delivery, save the actual document and include its exact text in a fresh session JSON. `capture` only sees messages already recorded: the pending final response and files merely linked in a reply are not automatically included. Append the saved document as the selected artifact, or prepare a scoped JSON directly. Never compare the summary in place of the delivered document. Use a new snapshot for each revision; remove unrelated turns only by preparing an explicitly scoped session, without rewriting retained prompts.
 
 For Codex with `CODEX_THREAD_ID`, run:
 
@@ -32,11 +36,21 @@ Limits: 100 turns, 50 artifacts, 60,000 total characters per session; 600 senten
 
 ## Open
 
+First run the headless check using the chosen engine (default lexical):
+
+```sh
+node runtime/cli/promptiff.mjs compare --session /absolute/private/path/session.json --out /absolute/private/path/report.json --engine lexical
+```
+
+It checks the last artifact in array order by default; `--artifact <id>` selects another. It includes only turns at or before that artifact's `turnId`, uses the canvas's exact sentence preparation, and returns output-to-prompt candidates and reverse prompt coverage as JSON. Read low matches in both directions and verify changed negation, numbers and entities. This is not a pass/fail compliance detector. Model errors fail the command; do not silently call a lexical result semantic. For local/remote modes pass the same engine options here and to `serve`.
+
 ```sh
 node runtime/cli/promptiff.mjs serve --session /absolute/private/path/session.json --engine lexical
 ```
 
 Keep the process running and return its complete loopback URL, including the token fragment. If the host has an available browser-panel tool, open the URL there; otherwise give a clickable browser link. Do not invent a sidebar API. Stop the owned process when requested. Add multiple `--session` arguments only for user-selected historical conversations.
+
+Open and verify the new artifact before returning its link alongside the document and compute mode. Serve a snapshot containing just the selected artifact if a specific older artifact was compared, so the canvas opens the same result. A running server holds an immutable in-memory snapshot: writing another JSON does not update it. Start a new owned process for a new version, keeping version links distinct. State failures instead of returning an old link as the latest check. Loopback links work on the machine hosting the Agent only; for a remote OpenClaw host, explain this limitation and use only an already authorized access path. No hosted cross-device reports or automatic background watcher are provided. Opening a semantic canvas recalculates vectors and can incur an additional remote API call.
 
 The default is character-bigram matching, clearly labeled as lexical. For semantic comparisons, respect the user's chosen compute mode:
 

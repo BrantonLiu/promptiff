@@ -17,6 +17,7 @@ import { fileURLToPath } from 'node:url';
 import { parseArgs } from 'node:util';
 import { loadSession, parseCodex, findCurrentSession } from './session.mjs';
 import { embeddings, remoteConfig } from './engine.mjs';
+import { compareSession } from './compare.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const help = `Promptiff — Agent 比对画布 (Node >=22.13)
@@ -24,6 +25,8 @@ const help = `Promptiff — Agent 比对画布 (Node >=22.13)
   node cli/promptiff.mjs install [--target ~/.agents/skills]
   node cli/promptiff.mjs capture --current --out session.json
   node cli/promptiff.mjs capture --codex-session /path/rollout.jsonl --out session.json
+  node cli/promptiff.mjs compare --session session.json [--artifact id] [--out report.json]
+       [--engine lexical|local|remote] [--python /path/python] [--allow-remote]
   node cli/promptiff.mjs serve --session session.json [--session other.json]
        [--engine lexical|local|remote] [--python /path/python] [--port 0]
        [--allow-remote]
@@ -216,6 +219,7 @@ async function main() {
       'codex-session': { type: 'string' },
       current: { type: 'boolean' },
       out: { type: 'string' },
+      artifact: { type: 'string' },
       engine: { type: 'string' },
       python: { type: 'string' },
       port: { type: 'string' },
@@ -262,9 +266,11 @@ async function main() {
     );
     return;
   }
-  if (command !== 'serve') throw new Error(`未知命令：${command}`);
+  if (!['serve', 'compare'].includes(command)) throw new Error(`未知命令：${command}`);
   if (!values.session?.length)
-    throw new Error('serve 需要至少一个 --session 文件。');
+    throw new Error(`${command} 需要至少一个 --session 文件。`);
+  if (command === 'compare' && values.session.length !== 1)
+    throw new Error('compare 每次接受一个 --session 文件。');
   const engine = values.engine || 'lexical';
   if (!['lexical', 'local', 'remote'].includes(engine))
     throw new Error('engine 仅支持 lexical、local、remote。');
@@ -277,6 +283,17 @@ async function main() {
     engine === 'remote'
       ? remoteConfig(process.env, values['allow-remote'])
       : undefined;
+  if (command === 'compare') {
+    const report = await compareSession(sessions[0], {
+      artifactId: values.artifact, engine, python: values.python, remote,
+    });
+    const body = JSON.stringify(report, null, 2) + '\n';
+    if (values.out) {
+      await writeFile(resolve(values.out), body, { flag: 'wx', mode: 0o600 });
+      process.stdout.write(`比对完成（${engine}）：${resolve(values.out)}\n`);
+    } else process.stdout.write(body);
+    return;
+  }
   const { server, url } = await startServer({
     sessions,
     engine,
