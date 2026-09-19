@@ -4,11 +4,31 @@
 
 ## 复制给 Agent 的指令
 
-网站右上角「设置 → Agent 接入」按 Skill / CLI 和计算方式生成指令。可直接复制下面这段：
+画布「设置 → Agent 接入」按 Skill / CLI 和计算方式生成指令。可直接复制下面这段：
 
 > 请安装 Promptiff 本地比对工具。读取 https://github.com/BrantonLiu/promptiff 中 docs/agent-canvas.md；使用仓库 main 或已提供的本地 checkout，先确认包含 `cli/promptiff.mjs`。将项目放在专用工具目录，不覆盖已有文件。使用 Node 22.13+，运行 `node cli/promptiff.mjs install --target <你的技能目录>`（Codex 通常为 `~/.agents/skills`）。只采集当前任务可见的用户原始 prompt 和我选择的 AI 产出，保留轮次，不带系统指令、工具日志、凭证或其他对话。Codex 用 `capture --current --out <新的 session.json 路径>`；不支持当前任务日志时从可见上下文导出文档里的 JSON，不能猜测缺失的原文。运行 `serve --session <文件> --engine lexical`，保持进程存活，在侧边浏览器或普通浏览器打开返回的完整链接。若我要真实语义比对，使用本文档的本地模型方式；只有我选择远程并允许上传时才使用远程方式。
 
 这段指令不依赖某款 Agent 能执行任意隐藏 API。Skill 是可被 Agent 发现的使用说明，CLI 执行确定性采集和本地服务；网页本身不能读取 Agent 会话。DSH 未确认具体产品及会话接口，暂使用通用 JSON 导出路径。
+
+### 文档交付约定：每次输出附带比对
+
+安装后，将这段话发给 Agent：
+
+> 在当前任务中，每次交付方案、报告、文章或其他文档的新版本前，用 Promptiff 对照相关用户原始要求与实际交付的正文。先保存文档，再生成新的会话 JSON，保留轮次与原文，把该文档放在 artifacts 最后。只处理当前任务授权的内容，不包括系统指令、工具日志、凭据及无关对话。先执行 compare 得到双向匹配，复核可能遗漏、新增、否定与数字变化；再用同一计算方式启动 serve，打开核验后，把文档和实际返回的完整比对链接一起交付。默认字面比对；只有我选择本地语义或授权远程模型时才切换计算方式。每次修订保留新快照和对应链接；出错时说明，不把旧链接当作新结果。若需跨任务沿用，把约定加入我指定的项目规则。
+
+```sh
+# 使用已安装 Skill 时，把 cli/ 换为该 Skill 的绝对路径下 runtime/cli/。
+node cli/promptiff.mjs compare --session /absolute/private/path/session-v1.json --out /absolute/private/path/report-v1.json --engine lexical
+node cli/promptiff.mjs serve --session /absolute/private/path/session-v1.json --engine lexical
+```
+
+`compare` 不依赖浏览器，默认检查数组最后一个产出，支持 `--artifact <id>`。按其 `turnId` 截止，只纳入当时已有的要求；Markdown 正文分句与画布一致。JSON 报告含 `source`、`rows`（产出句及其前三个候选）、`coverage`（反向匹配）、`engine` 和 `semantic`；不是通过/失败判定。省略 `--out` 时报告写到标准输出，指定文件时仅新建、权限 0600，拒绝覆盖。若只想纳入相关轮次，先准备范围明确的 session JSON；不要改写保留的原话。
+
+本地语义与自有远程 API 均可用于 `compare`，参数与 `serve` 相同。计算失败返回非零退出码，不静默降级。打开语义画布会再次计算，远程可能产生额外调用与费用。若用 `--artifact` 检查旧版，向 `serve` 提供只含该产出的会话快照，确保打开的是同一版本。
+
+`capture` 只能抓取已经落入日志的消息；还未发送的最终回复、回复里仅链接到的文档，不会自动成为正文。交付前应把实际文件正文写入 JSON，不能以“文档已完成”的摘要代替。OpenClaw 等产品使用同一 JSON 格式，从可见上下文导出即可；当前没有专用 OpenClaw 日志适配器或强制执行的全局输出钩子。安装 Skill 本身不保证每轮触发，自动执行依靠当前任务约定或用户指定的项目规则。
+
+本地链接属于 Agent 所在设备，仅在对应服务存活时有效；服务读取的是启动时快照，更新文件不会自动刷新运行中的服务。每个新版本启动新的服务并保留版本对应关系。远程主机运行的 OpenClaw 不能把 `127.0.0.1` 链接直接当作用户手机可访问的链接，需使用已获授权的访问通道。当前没有跨设备托管报告，远程 embeddings 也不改变这个边界。
 
 ## 本地安装与运行
 

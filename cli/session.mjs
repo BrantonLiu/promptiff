@@ -26,7 +26,7 @@ export function parseCodex(text) {
     // Environment/skill injections are not user prompts. Do not export them.
     if (
       role === 'user' &&
-      /^\s*(?:<environment_context>|<permissions instructions>|<INSTRUCTIONS>|# AGENTS\.md instructions|<recommended_plugins>)/.test(
+      /^\s*(?:<environment_context>|<permissions instructions>|<INSTRUCTIONS>|# AGENTS\.md instructions|<recommended_plugins>|<codex_internal_context\b)/.test(
         content,
       )
     )

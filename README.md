@@ -23,10 +23,13 @@ node cli/promptiff.mjs serve --session examples/session.json
 ```sh
 node cli/promptiff.mjs install --target ~/.agents/skills
 node cli/promptiff.mjs capture --current --out /absolute/private/path/session.json
+node cli/promptiff.mjs compare --session /absolute/private/path/session.json --out /absolute/private/path/report.json
 node cli/promptiff.mjs serve --session /absolute/private/path/session.json
 ```
 
 安装器不覆盖已有 Skill。capture 仅在当前 Codex 任务环境中采集该任务；也支持手工准备 JSON。[Agent 接入说明](docs/agent-canvas.md)提供可复制给 Agent 的指令、数据格式和模型配置。当前交付 Skill 与 CLI，尚未上架公共插件市场。
+
+希望每次交付文档都附带比对？将接入说明中的「文档交付约定」发给 Agent。它会保存实际正文，执行 `compare` 获取双向匹配，再启动画布并附上本机链接。安装 Skill 本身不等于全局自动执行；当前任务按约定运行，跨任务需配置项目规则。OpenClaw 等 Agent 可生成同一会话 JSON，不要求使用 Codex 日志。
 
 ## 计算方式
 
