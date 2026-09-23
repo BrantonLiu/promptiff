@@ -187,14 +187,14 @@ $('#color-presets').replaceChildren(...colorPresets.map((preset) => {
   const button = el('button', undefined, 'color-preset');
   button.type = 'button';
   button.dataset.preset = preset.id;
-  button.setAttribute('aria-label', `${preset.name}：相似色 ${preset.similar}，不相似色 ${preset.different}`);
+  button.setAttribute('aria-label', `${preset.name}：左侧不相似色 ${preset.different}，右侧相似色 ${preset.similar}`);
   const name = el('span', preset.name, 'preset-name');
   const swatches = el('span', undefined, 'preset-swatches');
-  const similar = el('i');
-  similar.style.backgroundColor = preset.similar;
   const different = el('i');
   different.style.backgroundColor = preset.different;
-  swatches.append(similar, different);
+  const similar = el('i');
+  similar.style.backgroundColor = preset.similar;
+  swatches.append(different, similar);
   button.append(name, swatches);
   button.addEventListener('click', () => {
     colors = { similar: preset.similar, different: preset.different };
