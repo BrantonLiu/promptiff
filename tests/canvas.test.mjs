@@ -161,6 +161,7 @@ test('loopback server protects session and model endpoints; serves inert canvas'
       'canvas.mjs',
       'core.mjs',
       'document.mjs',
+      'colors.mjs',
       'demo.mjs',
       'demo-vectors.mjs',
     ]) {

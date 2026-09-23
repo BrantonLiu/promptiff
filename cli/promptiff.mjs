@@ -79,7 +79,7 @@ export function startServer({
     ['/canvas/canvas.mjs', 'canvas.mjs'],
     ['/canvas/core.mjs', 'core.mjs'],
     ['/canvas/canvas.css', 'canvas.css'],
-    ...['document.mjs', 'demo.mjs', 'demo-vectors.mjs'].flatMap((name) => [
+    ...['document.mjs', 'demo.mjs', 'demo-vectors.mjs', 'colors.mjs'].flatMap((name) => [
       [`/${name}`, name],
       [`/canvas/${name}`, name],
     ]),

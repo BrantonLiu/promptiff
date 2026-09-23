@@ -10,6 +10,8 @@ const $ = (selector) => document.querySelector(selector);
 import { demo, demoProvenance } from './demo.mjs';
 import { prepareDocument, renderDocument } from './document.mjs';
 import { demoVectors, demoModel } from './demo-vectors.mjs';
+import { colorPresets, colorStorageKey, readColors, blendColors } from './colors.mjs';
+let colors = readColors(window.localStorage);
 let sessions = [demo],
   sessionIndex = 0,
   artifactIndex = 1,
@@ -173,9 +175,57 @@ function scoreText(n) {
   return n.toFixed(2);
 }
 function heat(score) {
-  const t = Math.max(0, Math.min(1, score));
-  return `rgba(${Math.round(235 - 81 * t)},${Math.round(192 + 6 * t)},${Math.round(114 + 37 * t)},${(0.19 + Math.abs(t - 0.5) * 0.25).toFixed(2)})`;
+  return blendColors(colors.different, colors.similar, score);
 }
+function saveColors() {
+  try { window.localStorage.setItem(colorStorageKey, JSON.stringify(colors)); } catch { /* Private storage may be unavailable. */ }
+}
+function selectedColorPreset() {
+  return colorPresets.find((preset) => preset.similar === colors.similar && preset.different === colors.different);
+}
+$('#color-presets').replaceChildren(...colorPresets.map((preset) => {
+  const button = el('button', undefined, 'color-preset');
+  button.type = 'button';
+  button.dataset.preset = preset.id;
+  button.setAttribute('aria-label', `${preset.name}：左侧不相似色 ${preset.different}，右侧相似色 ${preset.similar}`);
+  const name = el('span', preset.name, 'preset-name');
+  const swatches = el('span', undefined, 'preset-swatches');
+  const different = el('i');
+  different.style.backgroundColor = preset.different;
+  const similar = el('i');
+  similar.style.backgroundColor = preset.similar;
+  swatches.append(different, similar);
+  button.append(name, swatches);
+  button.addEventListener('click', () => {
+    colors = { similar: preset.similar, different: preset.different };
+    saveColors();
+    $('#custom-colors').open = false;
+    applyColors();
+  });
+  return button;
+}));
+function applyColors(refresh = true) {
+  document.documentElement.style.setProperty('--similar-color', colors.similar);
+  document.documentElement.style.setProperty('--different-color', colors.different);
+  const selectedPreset = selectedColorPreset();
+  for (const button of $('#color-presets').children)
+    button.setAttribute('aria-pressed', String(button.dataset.preset === selectedPreset?.id));
+  $('#custom-colors-label').textContent = selectedPreset ? '' : '· 当前使用';
+  for (const name of ['similar', 'different']) {
+    $(`#color-${name}`).value = colors[name];
+    $(`#color-${name}-value`).textContent = colors[name].toUpperCase();
+  }
+  if (refresh) render();
+}
+for (const name of ['similar', 'different'])
+  $(`#color-${name}`).addEventListener('input', (event) => {
+    colors = { ...colors, [name]: event.target.value };
+    saveColors();
+    applyColors();
+  });
+window.addEventListener('storage', (event) => {
+  if (event.key === colorStorageKey) { colors = readColors(window.localStorage); applyColors(); }
+});
 // Wrap text nodes without discarding Markdown emphasis, links or code formatting.
 function decorateWords(node, reference) {
   const parts = wordDiff(reference, node.textContent)
@@ -718,4 +768,6 @@ if (token) {
   }
 }
 renderSelectors();
+applyColors(false);
+if (!selectedColorPreset()) $('#custom-colors').open = true;
 void recalculate();

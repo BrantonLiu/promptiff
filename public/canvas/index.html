@@ -13,7 +13,7 @@
       >
       <div class="top-actions">
         <span id="privacy" class="privacy">本地浏览</span
-        ><button id="settings" aria-haspopup="dialog">设置</button>
+        ><button id="settings" class="settings-trigger" aria-label="设置" title="设置" aria-haspopup="dialog" aria-controls="settings-dialog"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7Z"/><path d="m19.4 13.4 1.1.9-1.5 2.6-1.4-.4a8 8 0 0 1-1.8 1l-.3 1.5h-3l-.3-1.5a8 8 0 0 1-1.8-1l-1.4.4-1.5-2.6 1.1-.9a8 8 0 0 1 0-2l-1.1-.9 1.5-2.6 1.4.4a8 8 0 0 1 1.8-1l.3-1.5h3l.3 1.5a8 8 0 0 1 1.8 1l1.4-.4 1.5 2.6-1.1.9a8 8 0 0 1 0 2Z" transform="translate(-1 -0.4)"/></svg></button>
       </div>
     </header>
     <main id="main">
@@ -140,6 +140,20 @@
         role="tabpanel"
         aria-labelledby="tab-compare"
       >
+        <div class="setting-block color-settings">
+          <h3>比对颜色</h3>
+          <p>每组左色代表不相似，右色代表相似；点击即应用。</p>
+          <div id="color-presets" class="color-presets" role="group" aria-label="比对配色方案"></div>
+          <details id="custom-colors" class="custom-colors">
+            <summary>自定义两种颜色 <span id="custom-colors-label"></span></summary>
+            <p>可分别调整相似与不相似的颜色。</p>
+            <div class="color-fields">
+              <label for="color-different"><span>不相似</span><input id="color-different" type="color" value="#f9dc84" /><output id="color-different-value">#F9DC84</output></label>
+              <label for="color-similar"><span>相似</span><input id="color-similar" type="color" value="#b6d4f0" /><output id="color-similar-value">#B6D4F0</output></label>
+            </div>
+          </details>
+          <div class="color-preview" aria-label="当前比对色阶"><span>不相似</span><b></b><span>相似</span></div>
+        </div>
         <div class="setting-row">
           <div>
             <h3>低匹配阈值</h3>
@@ -168,7 +182,7 @@
             分数衡量句子表达的接近程度，不是需求完成率。否定、数字和条件变化需要结合原文判断。低匹配要求表示当前产出没有与其足够接近的句子。
           </p>
           <p>
-            文档标题与表头保留排版，不计入句子得分。逐词比对、Git比对和逐字比对按字面最近句配对；Git比对左右展示增删，逐字比对在同一行标出字符变化。逐词比对使用浏览器内置分词，蓝色表示原位保留，黄色表示新增、替换或移位，不表示词义相似度。
+            文档标题与表头保留排版，不计入句子得分。逐词比对、Git比对和逐字比对按字面最近句配对；Git比对左右展示增删，逐字比对在同一行标出字符变化。逐词比对使用浏览器内置分词，相似色表示原位保留，不相似色表示新增、替换或移位，不表示词义相似度。
           </p>
         </details>
       </section>
