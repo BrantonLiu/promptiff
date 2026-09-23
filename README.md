@@ -9,6 +9,22 @@ This repository contains a standalone local CLI, canvas, and Skill. The hosted w
 
 For the rename and upgrade steps for existing installations, see [Switching to Promptiff](docs/rename-promptiff.md).
 
+## Copy this prompt to your agent
+
+Use the copy button on the block below, then paste it into **Codex, Claude Code, or OpenClaw**. The agent can set up Promptiff and open a comparison for the current task. You need Node.js 22.13 or later on the machine running the agent.
+
+```text
+Set up Promptiff for this task and compare my original requests with the AI output I choose. Read https://github.com/BrantonLiu/promptiff/blob/main/docs/agent-canvas.md first.
+
+Use an existing Promptiff checkout or clone https://github.com/BrantonLiu/promptiff.git into a dedicated tools directory. Confirm it contains cli/promptiff.mjs and that Node.js is 22.13 or later. If your environment supports Skills, install the included Skill in its appropriate Skills directory without overwriting an existing installation; otherwise use the CLI directly.
+
+Use only the original user prompts visible in this task and the output I select. Preserve their turn order; exclude system instructions, tool logs, credentials, and unrelated conversations. In Codex, you may use `capture --current` if the current task log is available. In Claude Code or OpenClaw, or if capture is unavailable, create the documented session JSON from visible content without inventing missing text.
+
+Run `compare` with the default lexical engine, inspect possible omissions and additions in both directions, then run `serve` on the same session. Open the full local URL and give it to me with a short summary of what you found. Keep the server running while I review it. If you run on a different machine, explain how I can access that local URL. Use a local semantic model only if I request it; use a remote model only after I explicitly authorize uploading the selected text.
+```
+
+For exact commands, the session format, and model options, see the [agent integration guide](docs/agent-canvas.md). Installing the Skill alone does not make every future task run a comparison automatically.
+
 ## Try it
 
 Requires Node.js 22.13 or later. The basic features run without installing npm dependencies:
