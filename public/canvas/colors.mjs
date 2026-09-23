@@ -1,5 +1,11 @@
 export const colorStorageKey = 'promptiff.comparisonColors.v1';
 export const defaultColors = Object.freeze({ similar: '#b6d4f0', different: '#f9dc84' });
+export const colorPresets = Object.freeze([
+  { id: 'classic', name: '经典蓝金', nameEn: 'Classic blue & gold', ...defaultColors },
+  { id: 'sage', name: '鼠尾草与杏', nameEn: 'Sage & apricot', similar: '#c9e2d2', different: '#f4d8b5' },
+  { id: 'lilac', name: '雾紫与珊瑚', nameEn: 'Lilac & coral', similar: '#d8d0ed', different: '#f2ccbe' },
+  { id: 'sea', name: '海盐与暖沙', nameEn: 'Sea salt & sand', similar: '#b9dde2', different: '#efd8bd' },
+]);
 
 const validColor = (value) => typeof value === 'string' && /^#[0-9a-f]{6}$/i.test(value);
 
