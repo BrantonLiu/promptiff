@@ -10,6 +10,8 @@ const $ = (selector) => document.querySelector(selector);
 import { demo, demoProvenance } from './demo.mjs';
 import { prepareDocument, renderDocument } from './document.mjs';
 import { demoVectors, demoModel } from './demo-vectors.mjs';
+import { colorStorageKey, defaultColors, readColors, blendColors } from './colors.mjs';
+let colors = readColors(window.localStorage);
 let sessions = [demo],
   sessionIndex = 0,
   artifactIndex = 1,
@@ -173,9 +175,31 @@ function scoreText(n) {
   return n.toFixed(2);
 }
 function heat(score) {
-  const t = Math.max(0, Math.min(1, score));
-  return `rgba(${Math.round(235 - 81 * t)},${Math.round(192 + 6 * t)},${Math.round(114 + 37 * t)},${(0.19 + Math.abs(t - 0.5) * 0.25).toFixed(2)})`;
+  return blendColors(colors.different, colors.similar, score);
 }
+function applyColors(refresh = true) {
+  document.documentElement.style.setProperty('--similar-color', colors.similar);
+  document.documentElement.style.setProperty('--different-color', colors.different);
+  for (const name of ['similar', 'different']) {
+    $(`#color-${name}`).value = colors[name];
+    $(`#color-${name}-value`).textContent = colors[name].toUpperCase();
+  }
+  if (refresh) render();
+}
+for (const name of ['similar', 'different'])
+  $(`#color-${name}`).addEventListener('input', (event) => {
+    colors = { ...colors, [name]: event.target.value };
+    try { window.localStorage.setItem(colorStorageKey, JSON.stringify(colors)); } catch { /* Private storage may be unavailable. */ }
+    applyColors();
+  });
+$('#reset-colors').addEventListener('click', () => {
+  colors = { ...defaultColors };
+  try { window.localStorage.removeItem(colorStorageKey); } catch { /* Private storage may be unavailable. */ }
+  applyColors();
+});
+window.addEventListener('storage', (event) => {
+  if (event.key === colorStorageKey) { colors = readColors(window.localStorage); applyColors(); }
+});
 // Wrap text nodes without discarding Markdown emphasis, links or code formatting.
 function decorateWords(node, reference) {
   const parts = wordDiff(reference, node.textContent)
@@ -718,4 +742,5 @@ if (token) {
   }
 }
 renderSelectors();
+applyColors(false);
 void recalculate();

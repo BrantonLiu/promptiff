@@ -11,6 +11,8 @@
   --accent: #39715c;
   --text-size: 15px;
   --line-height: 1.9;
+  --similar-color: #b6d4f0;
+  --different-color: #f9dc84;
 }
 * {
   box-sizing: border-box;
@@ -132,6 +134,14 @@ h3 {
   color: var(--muted);
   font-size: 12px;
 }
+.settings-trigger {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  padding: 7px;
+}
+.settings-trigger svg { width: 20px; height: 20px; }
 main {
   display: grid;
   grid-template-columns: 248px minmax(0, 1fr);
@@ -560,7 +570,7 @@ summary {
 .gradient {
   width: 52px;
   height: 5px;
-  background: linear-gradient(90deg, #f3d7a6, #cbdfce);
+  background: linear-gradient(90deg, var(--different-color), var(--similar-color));
   border-radius: 6px;
 }
 .zoom {
@@ -750,6 +760,14 @@ dialog p {
 .setting-block {
   margin: 24px 0;
 }
+.color-settings { margin-top: 0; }
+.color-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 14px; }
+.color-fields label { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 6px 10px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 7px; margin: 0; }
+.color-fields input { width: 46px; height: 32px; padding: 2px; border: 1px solid var(--line); border-radius: 5px; background: #fff; cursor: pointer; }
+.color-fields output { grid-column: 1 / -1; color: var(--muted); font: 11px ui-monospace, monospace; }
+.color-preview { display: flex; align-items: center; gap: 10px; color: var(--muted); font-size: 11px; margin-top: 15px; }
+.color-preview b { flex: 1; height: 8px; border-radius: 5px; background: linear-gradient(90deg, var(--different-color), var(--similar-color)); }
+@media (max-width: 480px) { .color-fields { grid-template-columns: 1fr; } }
 .setting-block button,
 .setting-actions {
   margin-top: 14px;
@@ -1052,10 +1070,10 @@ textarea {
   -webkit-box-decoration-break: clone;
 }
 .word-equal {
-  background: #dbe8f2;
+  background: var(--similar-color);
 }
 .word-insert {
-  background: #f8e6af;
+  background: var(--different-color);
 }
 @media (max-width: 600px) {
   .diff-columns {
