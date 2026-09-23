@@ -1,14 +1,17 @@
-# Promptiff · Agent 比对画布
+# Promptiff · Prompt Comparison Canvas for Agents
 
-把一轮或多轮用户 prompt 与选定的 AI 产出并排阅读，检查变化、遗漏和新增内容。支持语义比对、逐词比对、Git比对、逐字比对，以及独立的原文预览，以及 Markdown、纯文本、JSON、CSV、HTML 源码和代码。
+[![English](https://img.shields.io/badge/README-English-2563eb?style=for-the-badge)](README.md)
+[![简体中文](https://img.shields.io/badge/README-%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87-d1d5db?style=for-the-badge)](README.zh-CN.md)
 
-本仓库提供独立的本地 CLI、画布和 Skill。自营网站、登录、反馈数据库及生产部署配置在独立仓库维护。
+Read one or more user prompts alongside a selected AI response to spot changes, omissions, and additions. Promptiff supports semantic, word-level, Git, and character-by-character comparisons, plus a standalone source preview. It can display Markdown, plain text, JSON, CSV, HTML source, and code.
 
-更名与已有安装的更新步骤见[切换到 Promptiff](docs/rename-promptiff.md)。
+This repository contains a standalone local CLI, canvas, and Skill. The hosted website, sign-in, feedback database, and production deployment configuration live in a separate repository.
 
-## 快速体验
+For the rename and upgrade steps for existing installations, see [Switching to Promptiff](docs/rename-promptiff.md).
 
-需要 Node.js 22.13+，基础功能无需安装 npm 依赖：
+## Try it
+
+Requires Node.js 22.13 or later. The basic features run without installing npm dependencies:
 
 ```sh
 git clone https://github.com/BrantonLiu/promptiff.git
@@ -16,9 +19,9 @@ cd promptiff
 node cli/promptiff.mjs serve --session examples/session.json
 ```
 
-打开终端输出的完整本地链接。服务只监听 127.0.0.1；保持进程运行，按 Ctrl-C 关闭。在设置里可以导入会话 JSON，或粘贴自己的 prompt 和产出。
+Open the full local URL printed in the terminal. The server listens only on `127.0.0.1`. Leave the process running while you use the canvas, then press Ctrl-C to stop it. In Settings, you can import a session JSON file or paste your own prompts and responses.
 
-## 在 Agent 中使用
+## Use it with an agent
 
 ```sh
 node cli/promptiff.mjs install --target ~/.agents/skills
@@ -27,19 +30,19 @@ node cli/promptiff.mjs compare --session /absolute/private/path/session.json --o
 node cli/promptiff.mjs serve --session /absolute/private/path/session.json
 ```
 
-安装器不覆盖已有 Skill。capture 仅在当前 Codex 任务环境中采集该任务；也支持手工准备 JSON。[Agent 接入说明](docs/agent-canvas.md)提供可复制给 Agent 的指令、数据格式和模型配置。当前交付 Skill 与 CLI，尚未上架公共插件市场。
+The installer leaves existing Skills alone. `capture` collects data only from the current Codex task environment; you can also prepare the JSON by hand. The [agent integration guide](docs/agent-canvas.md) includes copyable instructions, the data format, and model configuration. Promptiff currently ships as a Skill and CLI and is not listed in a public plugin marketplace.
 
-希望每次交付文档都附带比对？将接入说明中的「文档交付约定」发给 Agent。它会保存实际正文，执行 `compare` 获取双向匹配，再启动画布并附上本机链接。安装 Skill 本身不等于全局自动执行；当前任务按约定运行，跨任务需配置项目规则。OpenClaw 等 Agent 可生成同一会话 JSON，不要求使用 Codex 日志。
+To include a comparison with each document delivery, give your agent the “Document delivery convention” from the integration guide. It saves the delivered text, runs `compare` to check matches in both directions, then opens the canvas and includes its local link. Installing the Skill does not enable it automatically for every task. Use the convention in the current task, or add it to project rules to reuse it across tasks. Agents such as OpenClaw can create the same session JSON without Codex logs.
 
-## 计算方式
+## How comparisons work
 
-- lexical：默认字面匹配，不下载模型，不发送文本。
-- local：安装 cli/requirements.txt 后在本地 Python 环境运行真实句向量计算，首次使用需下载固定版本模型。
-- remote：连接自有 embeddings API，需要显式选择、环境变量配置和 --allow-remote。
+- **lexical**: Uses literal matching by default. It downloads no model and sends no text.
+- **local**: Runs sentence-embedding comparisons in a local Python environment after you install `cli/requirements.txt`. The first run downloads a pinned model version.
+- **remote**: Connects to your own embeddings API. You must explicitly select it, configure environment variables, and pass `--allow-remote`.
 
-演示附带预先计算的句向量。自己的文本未接入模型时显示字面预览，不套用演示分数。相似度不能证明要求已经满足，需检查否定、数字和主体变化。
+The demo includes precomputed sentence embeddings. Until you connect a model, your own text appears as a literal preview and does not receive a demo score. Similarity scores cannot confirm that requirements were met; check changes to negation, numbers, and subjects yourself.
 
-## 开发
+## Development
 
 ```sh
 npm ci
@@ -47,8 +50,8 @@ npm test
 npm run lint
 ```
 
-画布是原生 HTML/CSS/JavaScript，不需要网站框架、构建或云端账号。见[开发指南](docs/development.md)与[计算方法](docs/methodology.md)。
+The canvas uses plain HTML, CSS, and JavaScript. It needs no web framework, build step, or cloud account. See the [development guide](docs/development.md) and [comparison methods](docs/methodology.md).
 
-代码采用 [MIT 许可证](LICENSE)。演示文本由项目需求整理，方案为故意包含偏离的演示改写，不代表交付记录。不要把个人会话、凭据或未经授权的材料放进公开测试数据。
+The code is licensed under the [MIT License](LICENSE). Demo text was assembled from project requirements. Its example rewrite deliberately includes deviations and does not represent a delivery record. Do not put personal sessions, credentials, or materials you are not authorized to share in public test data.
 
-旧提交和历史分支仍可能包含拆分前的网站源码，本次没有改写 Git 历史。
+Older commits and branches may still contain the website source from before the project was split. This repository's Git history has not been rewritten.
