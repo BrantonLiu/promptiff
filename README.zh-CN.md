@@ -5,6 +5,8 @@
 
 把一轮或多轮用户 prompt 与选定的 AI 产出并排阅读，检查变化、遗漏和新增内容。支持语义比对、逐词比对、Git 比对、逐字比对，以及独立的原文预览；可查看 Markdown、纯文本、JSON、CSV、HTML 源码和代码。
 
+**先看[在线示例](https://promptiff.zliu2934.workers.dev/)，或在[Agent 画布](https://promptiff.zliu2934.workers.dev/canvas)粘贴自己的文本。** 示例使用固定样本；自己的文本留在浏览器画布中，只有明确选择远程模型时才会上传。也可以完全在本机运行 CLI。
+
 本仓库提供独立的本地 CLI、画布和 Skill。自营网站、登录、反馈数据库及生产部署配置在独立仓库维护。
 
 更名与已有安装的更新步骤见[切换到 Promptiff](docs/rename-promptiff.md)。

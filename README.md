@@ -5,6 +5,8 @@
 
 Read one or more user prompts alongside a selected AI response to spot changes, omissions, and additions. Promptiff supports semantic, word-level, Git, and character-by-character comparisons, plus a standalone source preview. It can display Markdown, plain text, JSON, CSV, HTML source, and code.
 
+**Try the [live demo](https://promptiff.zliu2934.workers.dev/en) or [open the canvas with your own text](https://promptiff.zliu2934.workers.dev/canvas).** The demo uses a fixed sample; your own text stays in the browser canvas unless you explicitly choose a remote model. You can also run the CLI entirely on your machine.
+
 This repository contains a standalone local CLI, canvas, and Skill. The hosted website, sign-in, feedback database, and production deployment configuration live in a separate repository.
 
 For the rename and upgrade steps for existing installations, see [Switching to Promptiff](docs/rename-promptiff.md).
