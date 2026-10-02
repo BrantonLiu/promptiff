@@ -10,8 +10,11 @@ def main():
     name = 'sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2'
     try:
         model = SentenceTransformer(name, local_files_only=True, **options)
-    except OSError:
-        # Download only when the pinned model is missing from the local cache.
+    except (OSError, AttributeError) as error:
+        # Transformers can raise this AttributeError when an interrupted download
+        # cached the config but not the model weights. Retry only that case.
+        if isinstance(error, AttributeError) and str(error) != "'NoneType' object has no attribute 'endswith'":
+            raise
         model = SentenceTransformer(name, **options)
     lengths = [len(model.tokenizer.encode(text)) for text in texts]
     if max(lengths, default=0) > model.max_seq_length:
